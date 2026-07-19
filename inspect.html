@@ -530,6 +530,12 @@ async function submitForm() {
     };
 
     // ส่งข้อมูลตรงไป Apps Script ผ่าน GET (ไม่มี CORS)
+    // เพิ่ม checksJson = รายการแต่ละข้อพร้อมผล
+    const checksJson = JSON.stringify(checks.map(c => ({
+      label: c.label,
+      state: c.state
+    })));
+
     const params = new URLSearchParams({
       action:        'submit',
       timestamp:     payload.timestamp,
@@ -547,6 +553,7 @@ async function submitForm() {
       abnormalItems: payload.abnormalItems,
       note:          payload.note,
       notifyEmail:   payload.notifyEmail,
+      checksJson:    checksJson,
     });
 
     // ส่งข้อมูลหลัก (GET, no-cors)
