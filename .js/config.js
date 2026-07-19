@@ -68,7 +68,7 @@ const MACHINES = [
     region: 'ภาคกลาง',
     me: 'คุณนิรันดร์ สุขใจ',
     location: 'โรงงานผสมคอนกรีต สาย 1',
-    notifyEmail: 'manager@company.com',
+    notifyEmail: 'boyphuwit@gmail.com',
     checks: [
       'Filter bag ไม่อุดตัน',
       'Aeration ทำงานปกติ',
