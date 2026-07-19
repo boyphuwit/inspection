@@ -5,7 +5,7 @@
 
 // ── URL ของ Google Apps Script ────────────────────────────
 //  Deploy แล้ว Copy URL มาใส่ที่นี่
-const GAS_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwC45128TSAaNoIWFhOviiGWRechDD-bvXi4DdrHhK9gtLMw5dAV6rRxWMEdqgOW_20/exec';
 
 // ── รายการเครื่องจักร ─────────────────────────────────────
 const MACHINES = [
