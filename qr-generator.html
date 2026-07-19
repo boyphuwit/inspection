@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สร้าง QR Code — ระบบตรวจสอบเครื่องจักร</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F3F6FB; color: #111827; padding: 24px 16px 48px; }
+.header { background: linear-gradient(135deg, #0F3260, #1B4F8A); color: #fff; padding: 20px 24px; border-radius: 12px; margin-bottom: 24px; }
+.header h1 { font-size: 20px; font-weight: 700; }
+.header p { font-size: 13px; opacity: .8; margin-top: 4px; }
+.controls { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+.controls input { flex: 1; min-width: 260px; padding: 11px 16px; border: 1.5px solid #D1D5DB; border-radius: 8px; font-size: 14px; outline: none; }
+.controls input:focus { border-color: #1B4F8A; }
+.btn { padding: 11px 20px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+.btn-gen { background: #1B4F8A; color: #fff; }
+.btn-print { background: #111827; color: #fff; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.qr-card { background: #fff; border-radius: 12px; border: 1px solid #D1D5DB; padding: 20px 16px; text-align: center; break-inside: avoid; }
+.qr-id { font-size: 11px; font-weight: 700; color: #1B4F8A; letter-spacing: .08em; margin-bottom: 4px; }
+.qr-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.qr-info { font-size: 11px; color: #6B7280; margin-bottom: 14px; line-height: 1.6; }
+.qr-wrap { display: flex; justify-content: center; margin-bottom: 12px; }
+.qr-url { font-size: 9px; color: #9CA3AF; word-break: break-all; margin-bottom: 10px; line-height: 1.4; }
+.btn-dl { padding: 6px 14px; background: #EFF6FF; color: #1B4F8A; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+@media print {
+  body { background: #fff; padding: 0; }
+  .no-print { display: none !important; }
+  .header { display: none; }
+  .grid { grid-template-columns: repeat(3,1fr); gap: 10px; }
+  .qr-card { border: 1px solid #ccc; page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="header no-print">
+  <h1>📲 สร้าง QR Code</h1>
+  <p>พิมพ์ QR Code ติดหน้าเครื่องจักรแต่ละจุด — สแกนแล้วเข้าฟอร์มตรวจสอบได้ทันที</p>
+</div>
+
+<div class="controls no-print">
+  <input type="text" id="base-url" placeholder="https://boyphuwit.github.io/machine-inspection-v2">
+  <button class="btn btn-gen" onclick="generateAll()">🔄 สร้าง QR</button>
+  <button class="btn btn-print" onclick="window.print()">🖨️ Print ทั้งหมด</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<script src="js/config.js"></script>
+<script>
+function generateAll() {
+  const base = document.getElementById('base-url').value.trim().replace(/\/$/, '');
+  if (!base) { alert('กรุณาใส่ URL ก่อน'); return; }
+
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  MACHINES.forEach(m => {
+    const url = `${base}/inspect.html?id=${encodeURIComponent(m.id)}`;
+    const card = document.createElement('div');
+    card.className = 'qr-card';
+    card.innerHTML = `
+      <div class="qr-id">${m.id}</div>
+      <div class="qr-name">${m.name}</div>
+      <div class="qr-info">${[m.fc, m.unit, m.region, m.me ? 'ME: '+m.me : ''].filter(Boolean).join('<br>')}</div>
+      <div class="qr-wrap" id="qr-${m.id}"></div>
+      <div class="qr-url">${url}</div>`;
+
+    const dlBtn = document.createElement('button');
+    dlBtn.className = 'btn-dl no-print';
+    dlBtn.textContent = '⬇ บันทึกรูป';
+    card.appendChild(dlBtn);
+    grid.appendChild(card);
+
+    new QRCode(document.getElementById(`qr-${m.id}`), {
+      text: url, width: 160, height: 160,
+      colorDark: '#0F3260', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+
+    dlBtn.onclick = () => setTimeout(() => {
+      const canvas = card.querySelector('canvas');
+      if (!canvas) return;
+      const out = document.createElement('canvas');
+      out.width = 320; out.height = 440;
+      const ctx = out.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 320, 440);
+      ctx.fillStyle = '#0F3260'; ctx.fillRect(0, 0, 320, 44);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Arial'; ctx.textAlign = 'center';
+      ctx.fillText('ระบบตรวจสอบเครื่องจักร', 160, 28);
+      ctx.drawImage(canvas, 80, 54, 160, 160);
+      ctx.fillStyle = '#1B4F8A'; ctx.font = 'bold 12px Arial';
+      ctx.fillText(m.id, 160, 236);
+      ctx.fillStyle = '#111827'; ctx.font = 'bold 16px Arial';
+      ctx.fillText(m.name, 160, 260);
+      ctx.fillStyle = '#6B7280'; ctx.font = '12px Arial';
+      if (m.fc) ctx.fillText(`${m.fc}${m.unit ? ' · ' + m.unit : ''}`, 160, 282);
+      if (m.me) ctx.fillText('ME: ' + m.me, 160, 300);
+      ctx.fillStyle = '#EFF6FF'; ctx.fillRect(20, 370, 280, 50);
+      ctx.fillStyle = '#1B4F8A'; ctx.font = '11px Arial';
+      ctx.fillText('สแกน QR Code เพื่อเริ่มตรวจสอบ', 160, 400);
+      const a = document.createElement('a');
+      a.href = out.toDataURL('image/png');
+      a.download = `QR_${m.id}.png`;
+      a.click();
+    }, 300);
+  });
+}
+
+window.addEventListener('load', () => {
+  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    const base = location.origin + location.pathname.replace('/qr-generator.html', '');
+    document.getElementById('base-url').value = base.replace(/\/$/, '');
+    generateAll();
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>ตรวจสอบเครื่องจักร</title>
+<style>
+/* ── RESET & TOKENS ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --c-primary:   #1B4F8A;
+  --c-primary-d: #0F3260;
+  --c-primary-l: #E8F0FA;
+  --c-success:   #1E7E4C;
+  --c-success-l: #E6F5ED;
+  --c-danger:    #B91C1C;
+  --c-danger-l:  #FEE2E2;
+  --c-warn:      #B45309;
+  --c-warn-l:    #FEF3C7;
+  --c-text:      #111827;
+  --c-sub:       #4B5563;
+  --c-muted:     #9CA3AF;
+  --c-border:    #D1D5DB;
+  --c-bg:        #F3F6FB;
+  --c-surface:   #FFFFFF;
+  --r-card:      12px;
+  --r-btn:       8px;
+  --shadow-sm:   0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:   0 4px 12px rgba(0,0,0,.08);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans Thai', sans-serif;
+  background: var(--c-bg);
+  color: var(--c-text);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ── HEADER ── */
+.app-header {
+  background: linear-gradient(160deg, var(--c-primary-d) 0%, var(--c-primary) 100%);
+  color: #fff;
+  padding: 16px 20px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.app-header__inner { max-width: 640px; margin: 0 auto; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.app-header__title { font-size: 13px; font-weight: 600; letter-spacing: .03em; opacity: .75; margin-bottom: 4px; }
+.app-header__machine { font-size: 19px; font-weight: 700; line-height: 1.2; }
+.app-header__meta { font-size: 12px; opacity: .7; margin-top: 4px; }
+.scan-pill {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.scan-pill__dot { width: 6px; height: 6px; border-radius: 50%; background: #4ADE80; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ── PAGE BODY ── */
+.page-body { max-width: 640px; margin: 0 auto; padding: 20px 16px 100px; display: flex; flex-direction: column; gap: 16px; }
+
+/* ── SUMMARY BAR ── */
+.summary { display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--c-surface); border-radius: var(--r-card); box-shadow: var(--shadow-sm); overflow: hidden; border: 1px solid var(--c-border); }
+.summary__item { padding: 14px 8px; text-align: center; border-right: 1px solid var(--c-border); }
+.summary__item:last-child { border-right: none; }
+.summary__num { font-size: 26px; font-weight: 700; line-height: 1; }
+.summary__label { font-size: 11px; color: var(--c-sub); margin-top: 4px; font-weight: 500; letter-spacing: .02em; }
+.summary__item--pass  .summary__num { color: var(--c-success); }
+.summary__item--fail  .summary__num { color: var(--c-danger); }
+.summary__item--pend  .summary__num { color: var(--c-muted); }
+
+/* ── CARD ── */
+.card { background: var(--c-surface); border-radius: var(--r-card); box-shadow: var(--shadow-sm); border: 1px solid var(--c-border); overflow: hidden; }
+.card__header { padding: 12px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--c-border); }
+.card__tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 3px 8px; border-radius: 4px; }
+.card__tag--blue { background: var(--c-primary); color: #fff; }
+.card__tag--green { background: var(--c-success); color: #fff; }
+.card__heading { font-size: 13px; font-weight: 600; color: var(--c-sub); }
+.card__note { font-size: 11px; color: var(--c-muted); margin-left: auto; }
+
+/* ── INFO GRID ── */
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.info-cell { padding: 12px 16px; border-bottom: 1px solid #F3F4F6; border-right: 1px solid #F3F4F6; }
+.info-cell:nth-child(even) { border-right: none; }
+.info-cell:nth-last-child(-n+2) { border-bottom: none; }
+.info-cell__label { font-size: 10px; font-weight: 600; color: var(--c-muted); letter-spacing: .05em; text-transform: uppercase; margin-bottom: 3px; }
+.info-cell__val { font-size: 14px; font-weight: 600; color: var(--c-text); }
+.info-cell__val--id { color: var(--c-primary); font-family: 'Courier New', monospace; }
+
+/* ── INSPECTOR INPUT ── */
+.field { padding: 14px 16px; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: var(--c-sub); margin-bottom: 8px; letter-spacing: .02em; }
+.field input, .field textarea {
+  width: 100%; padding: 11px 14px;
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--r-btn);
+  font-size: 14px; font-family: inherit;
+  color: var(--c-text); background: #FAFAFA;
+  outline: none; transition: border-color .15s, background .15s;
+}
+.field input:focus, .field textarea:focus { border-color: var(--c-primary); background: #fff; }
+.field input::placeholder, .field textarea::placeholder { color: var(--c-muted); }
+.field textarea { min-height: 80px; resize: none; }
+
+/* ── CHECKLIST TABLE ── */
+.cl-header { display: grid; grid-template-columns: 1fr 90px 90px 48px; padding: 8px 16px; background: #F9FAFB; border-bottom: 1px solid var(--c-border); }
+.cl-header span { font-size: 11px; font-weight: 600; color: var(--c-muted); letter-spacing: .04em; text-align: center; }
+.cl-header span:first-child { text-align: left; }
+
+.cl-row { display: grid; grid-template-columns: 1fr 90px 90px 48px; align-items: center; padding: 10px 16px; border-bottom: 1px solid #F3F4F6; transition: background .1s; }
+.cl-row:last-child { border-bottom: none; }
+.cl-row--pass { background: var(--c-success-l); }
+.cl-row--fail { background: var(--c-danger-l); }
+.cl-row--warn { background: var(--c-warn-l); }
+
+.cl-row__label { font-size: 14px; color: var(--c-text); display: flex; align-items: center; gap: 6px; }
+.cl-row__num { font-size: 12px; color: var(--c-muted); font-weight: 500; min-width: 20px; }
+.status-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+.status-badge--pass { background: #D1FAE5; color: var(--c-success); }
+.status-badge--fail { background: #FEE2E2; color: var(--c-danger); }
+
+.cl-btn {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 7px 4px; border-radius: 6px; border: 1.5px solid var(--c-border);
+  background: #fff; cursor: pointer; font-size: 12px; font-weight: 700;
+  transition: all .15s; -webkit-tap-highlight-color: transparent;
+  color: var(--c-muted);
+}
+.cl-btn--pass.active { background: var(--c-success); border-color: var(--c-success); color: #fff; }
+.cl-btn--fail.active { background: var(--c-danger); border-color: var(--c-danger); color: #fff; }
+
+.photo-btn {
+  width: 36px; height: 36px; border-radius: 8px;
+  border: 1.5px dashed var(--c-border);
+  background: #F9FAFB; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; transition: all .15s; position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.photo-btn--has { border-style: solid; border-color: var(--c-primary); background: var(--c-primary-l); }
+.photo-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+/* ── BOTTOM ACTION BAR ── */
+.action-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--c-surface);
+  border-top: 1px solid var(--c-border);
+  padding: 12px 16px;
+  display: flex; gap: 10px;
+  box-shadow: 0 -4px 16px rgba(0,0,0,.06);
+  z-index: 50;
+}
+.action-bar__inner { max-width: 640px; margin: 0 auto; display: flex; gap: 10px; width: 100%; }
+
+.btn { padding: 13px 20px; border-radius: var(--r-btn); font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .15s; border: none; -webkit-tap-highlight-color: transparent; }
+.btn--outline { background: transparent; border: 1.5px solid var(--c-primary); color: var(--c-primary); flex: 1; }
+.btn--outline:hover { background: var(--c-primary-l); }
+.btn--primary { background: var(--c-primary); color: #fff; flex: 2; }
+.btn--primary:hover { background: var(--c-primary-d); }
+.btn--primary:disabled { opacity: .5; cursor: not-allowed; }
+.btn--danger { background: var(--c-danger); color: #fff; flex: 2; }
+
+/* ── OVERLAY ── */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 14px; }
+.overlay.show { display: flex; }
+.spinner { width: 42px; height: 42px; border: 3px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .75s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.overlay__msg { color: #fff; font-size: 14px; font-weight: 500; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(60px); padding: 12px 20px; border-radius: 24px; font-size: 13px; font-weight: 600; white-space: nowrap; transition: transform .25s; z-index: 300; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast--success { background: var(--c-success); color: #fff; }
+.toast--error { background: var(--c-danger); color: #fff; }
+.toast--info { background: var(--c-primary); color: #fff; }
+
+/* ── HISTORY PANEL ── */
+.panel { display: none; position: fixed; inset: 0; background: var(--c-bg); z-index: 100; overflow-y: auto; flex-direction: column; }
+.panel.show { display: flex; }
+.panel__header { background: linear-gradient(160deg, var(--c-primary-d), var(--c-primary)); color: #fff; padding: 16px 20px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+.panel__back { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2); color: #fff; border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.panel__title { font-size: 16px; font-weight: 700; }
+.panel__body { max-width: 640px; margin: 0 auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 14px; width: 100%; }
+
+.view-toggle { display: flex; background: var(--c-surface); border-radius: 10px; border: 1px solid var(--c-border); overflow: hidden; }
+.view-toggle__btn { flex: 1; padding: 10px; font-size: 12px; font-weight: 600; border: none; background: transparent; cursor: pointer; color: var(--c-muted); display: flex; align-items: center; justify-content: center; gap: 6px; transition: all .15s; }
+.view-toggle__btn.active { background: var(--c-primary); color: #fff; }
+
+.filter-row { display: flex; gap: 8px; }
+.filter-row select { flex: 1; padding: 9px 12px; border: 1.5px solid var(--c-border); border-radius: var(--r-btn); font-size: 13px; font-family: inherit; color: var(--c-text); background: #fff; outline: none; }
+
+/* History cards */
+.hist-card { background: var(--c-surface); border-radius: var(--r-card); border: 1px solid var(--c-border); box-shadow: var(--shadow-sm); padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; }
+.hist-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.hist-dot--pass { background: var(--c-success); }
+.hist-dot--fail { background: var(--c-danger); }
+.hist-dot--inc { background: var(--c-warn); }
+.hist-info { flex: 1; }
+.hist-title { font-size: 14px; font-weight: 600; }
+.hist-sub { font-size: 12px; color: var(--c-sub); margin-top: 2px; }
+.hist-fail { font-size: 12px; color: var(--c-danger); margin-top: 3px; }
+.hist-badge { flex-shrink: 0; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 12px; }
+.hist-badge--pass { background: var(--c-success-l); color: var(--c-success); }
+.hist-badge--fail { background: var(--c-danger-l); color: var(--c-danger); }
+.hist-badge--inc  { background: var(--c-warn-l);   color: var(--c-warn); }
+
+/* Calendar */
+.cal-wrap { background: var(--c-surface); border-radius: var(--r-card); border: 1px solid var(--c-border); padding: 16px; }
+.cal-month { font-size: 14px; font-weight: 700; color: var(--c-primary); text-align: center; margin-bottom: 12px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+.cal-day-hd { font-size: 10px; font-weight: 600; color: var(--c-muted); text-align: center; padding: 4px 0; }
+.cal-cell { aspect-ratio: 1; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px; font-size: 12px; font-weight: 500; background: #F9FAFB; border: 1px solid #F3F4F6; }
+.cal-cell--pass { background: var(--c-success-l); border-color: #A7F3D0; color: var(--c-success); font-weight: 700; }
+.cal-cell--fail { background: var(--c-danger-l); border-color: #FCA5A5; color: var(--c-danger); font-weight: 700; }
+.cal-cell--today { outline: 2px solid var(--c-primary); outline-offset: 1px; }
+.cal-dot { width: 5px; height: 5px; border-radius: 50%; }
+.cal-dot--pass { background: var(--c-success); }
+.cal-dot--fail { background: var(--c-danger); }
+
+.empty-state { text-align: center; color: var(--c-muted); font-size: 13px; padding: 40px 20px; }
+.loading-state { text-align: center; color: var(--c-muted); font-size: 13px; padding: 30px; }
+</style>
+</head>
+<body>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay">
+  <div class="spinner"></div>
+  <div class="overlay__msg" id="overlay-msg">กำลังส่งข้อมูล…</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- History Panel -->
+<div class="panel" id="history-panel">
+  <div class="panel__header">
+    <button class="panel__back" onclick="closeHistory()">← กลับ</button>
+    <div class="panel__title">ประวัติการตรวจสอบ</div>
+  </div>
+  <div class="panel__body">
+    <div class="view-toggle">
+      <button class="view-toggle__btn active" id="btn-list" onclick="switchView('list')">☰ รายการ</button>
+      <button class="view-toggle__btn" id="btn-cal" onclick="switchView('cal')">📅 ปฏิทิน</button>
+    </div>
+    <div class="filter-row">
+      <select id="filter-range" onchange="loadHistory()">
+        <option value="1">ย้อนหลัง 1 เดือน</option>
+        <option value="3" selected>ย้อนหลัง 3 เดือน</option>
+        <option value="6">ย้อนหลัง 6 เดือน</option>
+      </select>
+    </div>
+    <div id="history-content"><div class="loading-state">กำลังโหลด…</div></div>
+  </div>
+</div>
+
+<!-- App Header -->
+<header class="app-header">
+  <div class="app-header__inner">
+    <div>
+      <div class="app-header__title">ระบบตรวจสอบเครื่องจักร</div>
+      <div class="app-header__machine" id="hdr-name">กำลังโหลด…</div>
+      <div class="app-header__meta" id="hdr-meta"></div>
+    </div>
+    <div class="scan-pill"><div class="scan-pill__dot"></div> สแกนแล้ว</div>
+  </div>
+</header>
+
+<!-- Page Body -->
+<div class="page-body">
+
+  <!-- Summary -->
+  <div class="summary">
+    <div class="summary__item summary__item--pass">
+      <div class="summary__num" id="sum-pass">0</div>
+      <div class="summary__label">ปกติ</div>
+    </div>
+    <div class="summary__item summary__item--fail">
+      <div class="summary__num" id="sum-fail">0</div>
+      <div class="summary__label">ผิดปกติ</div>
+    </div>
+    <div class="summary__item summary__item--pend">
+      <div class="summary__num" id="sum-pend">0</div>
+      <div class="summary__label">รอตรวจ</div>
+    </div>
+  </div>
+
+  <!-- Section 1: Machine Info -->
+  <div class="card">
+    <div class="card__header">
+      <span class="card__tag card__tag--blue">ข้อมูลเครื่องจักร</span>
+      <span class="card__note">Read-only</span>
+    </div>
+    <div class="info-grid" id="info-grid"></div>
+  </div>
+
+  <!-- Section 2: Inspection Form -->
+  <div class="card">
+    <div class="card__header">
+      <span class="card__tag card__tag--green">แบบฟอร์มตรวจสอบ</span>
+      <span class="card__note" id="hdr-date"></span>
+    </div>
+
+    <!-- Inspector name -->
+    <div class="field" style="border-bottom:1px solid var(--c-border)">
+      <label>ชื่อผู้ตรวจสอบ</label>
+      <input type="text" id="inspector" placeholder="ชื่อ-นามสกุล" autocomplete="name">
+    </div>
+
+    <!-- Checklist -->
+    <div class="cl-header">
+      <span>รายการตรวจสอบ</span>
+      <span>ปกติ</span>
+      <span>ผิดปกติ</span>
+      <span>รูป</span>
+    </div>
+    <div id="checklist"></div>
+
+    <!-- Note -->
+    <div class="field">
+      <label>หมายเหตุ / สิ่งที่พบ</label>
+      <textarea id="note" placeholder="ระบุรายละเอียดเพิ่มเติม หรือค่าที่วัดได้…"></textarea>
+    </div>
+  </div>
+
+</div><!-- /page-body -->
+
+<!-- Action Bar -->
+<div class="action-bar">
+  <div class="action-bar__inner">
+    <button class="btn btn--outline" onclick="openHistory()">📋 ประวัติ</button>
+    <button class="btn btn--primary" id="submit-btn" onclick="submitForm()">✉️ ส่งผลการตรวจ</button>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+// ── CONFIG (อัปเดตใน config.js) ──────────────────────
+const SCRIPT_URL = typeof GAS_URL !== 'undefined' ? GAS_URL : '';
+
+// ── STATE ─────────────────────────────────────────────
+let machine = null;
+let checks  = []; // { id, label, state: 'normal'|'abnormal'|'pending' }
+let photos  = {}; // { checkId: base64 }
+let histView = 'list';
+
+// ── INIT ─────────────────────────────────────────────
+function init() {
+  const id = new URLSearchParams(location.search).get('id');
+
+  // Date/time header
+  const now = new Date();
+  document.getElementById('hdr-date').textContent =
+    now.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' +
+    now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+
+  if (!id || typeof MACHINES === 'undefined') {
+    document.getElementById('hdr-name').textContent = 'ไม่พบข้อมูลเครื่องจักร';
+    return;
+  }
+
+  machine = MACHINES.find(m => m.id === id);
+  if (!machine) {
+    document.getElementById('hdr-name').textContent = `ไม่พบ ID: ${id}`;
+    return;
+  }
+
+  document.title = `ตรวจสอบ: ${machine.name}`;
+  document.getElementById('hdr-name').textContent = machine.name;
+  document.getElementById('hdr-meta').textContent =
+    [machine.fc, machine.unit, machine.location].filter(Boolean).join(' · ');
+
+  // Info grid
+  const infoFields = [
+    ['Machine ID', machine.id, true],
+    ['ชื่อเครื่องจักร', machine.name],
+    ['โรงงาน / FC', machine.fc || '—'],
+    ['หน่วยผลิต', machine.unit || '—'],
+    ['ภูมิภาค', machine.region || '—'],
+    ['ME ผู้ดูแล', machine.me || '—'],
+  ];
+  document.getElementById('info-grid').innerHTML = infoFields.map(([label, val, mono]) => `
+    <div class="info-cell">
+      <div class="info-cell__label">${label}</div>
+      <div class="info-cell__val${mono ? ' info-cell__val--id' : ''}">${val}</div>
+    </div>`).join('');
+
+  // Build checks
+  checks = machine.checks.map((c, i) => ({
+    id: i,
+    label: typeof c === 'string' ? c : c.label,
+    state: 'pending'
+  }));
+
+  renderChecklist();
+  updateSummary();
+}
+
+// ── CHECKLIST ─────────────────────────────────────────
+function renderChecklist() {
+  const list = document.getElementById('checklist');
+  list.innerHTML = checks.map(c => {
+    const rowCls = c.state === 'normal' ? 'cl-row--pass' : c.state === 'abnormal' ? 'cl-row--fail' : '';
+    const hasPhoto = !!photos[c.id];
+    const badge = c.state === 'normal'
+      ? '<span class="status-badge status-badge--pass">ปกติ</span>'
+      : c.state === 'abnormal'
+      ? '<span class="status-badge status-badge--fail">ผิดปกติ</span>'
+      : '';
+
+    return `<div class="cl-row ${rowCls}" id="clrow-${c.id}">
+      <div class="cl-row__label">
+        <span class="cl-row__num">${c.id + 1}.</span>
+        <span>${c.label}</span>
+        ${badge}
+      </div>
+      <button class="cl-btn cl-btn--pass ${c.state === 'normal' ? 'active' : ''}"
+        onclick="setCheck(${c.id},'normal')">✓ ปกติ</button>
+      <button class="cl-btn cl-btn--fail ${c.state === 'abnormal' ? 'active' : ''}"
+        onclick="setCheck(${c.id},'abnormal')">✗ ผิดปกติ</button>
+      <label class="photo-btn ${hasPhoto ? 'photo-btn--has' : ''}">
+        ${hasPhoto ? '📸' : '📷'}
+        <input type="file" accept="image/*" capture="environment" onchange="addPhoto(event,${c.id})">
+      </label>
+    </div>`;
+  }).join('');
+}
+
+function setCheck(id, state) {
+  const c = checks.find(x => x.id === id);
+  if (!c) return;
+  c.state = c.state === state ? 'pending' : state;
+  renderChecklist();
+  updateSummary();
+}
+
+function updateSummary() {
+  const norm = checks.filter(c => c.state === 'normal').length;
+  const abn  = checks.filter(c => c.state === 'abnormal').length;
+  const pend = checks.filter(c => c.state === 'pending').length;
+  document.getElementById('sum-pass').textContent = norm;
+  document.getElementById('sum-fail').textContent = abn;
+  document.getElementById('sum-pend').textContent = pend;
+
+  const btn = document.getElementById('submit-btn');
+  if (abn > 0) {
+    btn.className = 'btn btn--danger';
+    btn.textContent = `⚠️ ส่งผล (พบผิดปกติ ${abn} รายการ)`;
+  } else {
+    btn.className = 'btn btn--primary';
+    btn.textContent = '✉️ ส่งผลการตรวจ';
+  }
+}
+
+// ── PHOTOS ───────────────────────────────────────────
+function addPhoto(e, idx) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX = 640;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else       { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      photos[idx] = canvas.toDataURL('image/jpeg', 0.6);
+      renderChecklist();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── SUBMIT ───────────────────────────────────────────
+async function submitForm() {
+  if (!machine) return;
+
+  const inspector = document.getElementById('inspector').value.trim();
+  if (!inspector) { showToast('กรุณาระบุชื่อผู้ตรวจสอบ', 'error'); return; }
+
+  const pending = checks.filter(c => c.state === 'pending').length;
+  if (pending > 0 && !confirm(`ยังมี ${pending} รายการที่ยังไม่ได้ตรวจ\nต้องการส่งผลหรือไม่?`)) return;
+
+  showOverlay('กำลังส่งข้อมูล…');
+
+  try {
+    const now      = new Date().toLocaleString('th-TH');
+    const normal   = checks.filter(c => c.state === 'normal');
+    const abnormal = checks.filter(c => c.state === 'abnormal');
+    const note     = document.getElementById('note').value.trim();
+    const status   = abnormal.length > 0 ? 'ABNORMAL' : pending > 0 ? 'INCOMPLETE' : 'NORMAL';
+
+    const payload = {
+      timestamp:   now,
+      machineId:   machine.id,
+      machineName: machine.name,
+      fc:          machine.fc   || '',
+      unit:        machine.unit || '',
+      region:      machine.region || '',
+      me:          machine.me   || '',
+      location:    machine.location || '',
+      inspector,
+      status,
+      normalCount:   normal.length,
+      abnormalCount: abnormal.length,
+      abnormalItems: abnormal.map(c => c.label).join(', '),
+      note,
+      photos:        Object.values(photos).filter(Boolean),
+      notifyEmail:   machine.notifyEmail || '',
+      saveToSheet:   true
+    };
+
+    // ส่งข้อมูลตรงไป Apps Script ผ่าน GET (ไม่มี CORS)
+    const params = new URLSearchParams({
+      action:        'submit',
+      timestamp:     payload.timestamp,
+      machineId:     payload.machineId,
+      machineName:   payload.machineName,
+      fc:            payload.fc,
+      unit:          payload.unit,
+      region:        payload.region,
+      me:            payload.me,
+      location:      payload.location,
+      inspector:     payload.inspector,
+      status:        payload.status,
+      normalCount:   payload.normalCount,
+      abnormalCount: payload.abnormalCount,
+      abnormalItems: payload.abnormalItems,
+      note:          payload.note,
+      notifyEmail:   payload.notifyEmail,
+    });
+
+    // ส่งข้อมูลหลัก (GET, no-cors)
+    await fetch(SCRIPT_URL + '?' + params.toString(), {
+      method: 'GET',
+      mode: 'no-cors'
+    });
+
+    // ส่งรูปแยก (ถ้ามี) ผ่าน no-cors POST
+    if (payload.photos && payload.photos.length > 0) {
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          action: 'photos',
+          machineId: payload.machineId,
+          inspector: payload.inspector,
+          timestamp: payload.timestamp,
+          photos: payload.photos
+        })
+      }).catch(() => {});
+    }
+
+    // no-cors ไม่คืน response ถือว่าสำเร็จ
+    await new Promise(r => setTimeout(r, 800));
+
+    hideOverlay();
+    showToast(status === 'ABNORMAL' ? '⚠️ ส่งผลแล้ว — แจ้งเตือน Email แล้ว' : '✅ ส่งผลการตรวจเรียบร้อย', 'success');
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = '✅ ส่งแล้ว';
+
+  } catch(err) {
+    hideOverlay();
+    showToast('❌ ส่งไม่สำเร็จ: ' + err.message, 'error');
+  }
+}
+
+// ── HISTORY ──────────────────────────────────────────
+function openHistory() {
+  document.getElementById('history-panel').classList.add('show');
+  loadHistory();
+}
+function closeHistory() {
+  document.getElementById('history-panel').classList.remove('show');
+}
+function switchView(v) {
+  histView = v;
+  document.getElementById('btn-list').className = 'view-toggle__btn' + (v === 'list' ? ' active' : '');
+  document.getElementById('btn-cal').className  = 'view-toggle__btn' + (v === 'cal'  ? ' active' : '');
+  loadHistory();
+}
+
+async function loadHistory() {
+  const content = document.getElementById('history-content');
+  content.innerHTML = '<div class="loading-state">กำลังโหลด…</div>';
+  try {
+    const months = document.getElementById('filter-range').value;
+    const gasUrl = SCRIPT_URL || (typeof GAS_URL !== 'undefined' ? GAS_URL : '');
+    if (!gasUrl) { content.innerHTML = '<div class="empty-state">ยังไม่ได้ตั้งค่า Apps Script URL</div>'; return; }
+
+    const url = gasUrl + '?action=history&months=' + months + '&machineId=' + encodeURIComponent(machine ? machine.id : '');
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    if (!data.rows || data.rows.length === 0) {
+      content.innerHTML = '<div class="empty-state">ยังไม่มีประวัติการตรวจสอบในช่วงเวลานี้</div>';
+      return;
+    }
+    histView === 'list' ? renderList(data.rows, content) : renderCal(data.rows, content);
+  } catch(err) {
+    content.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ<br><small>${err.message}</small></div>`;
+  }
+}
+
+function renderList(rows, container) {
+  container.innerHTML = rows.map(r => {
+    const cls = r.status === 'NORMAL' ? 'pass' : r.status === 'ABNORMAL' ? 'fail' : 'inc';
+    const label = r.status === 'NORMAL' ? 'ปกติ' : r.status === 'ABNORMAL' ? 'ผิดปกติ' : 'ไม่ครบ';
+    return `<div class="hist-card">
+      <div class="hist-dot hist-dot--${cls}"></div>
+      <div class="hist-info">
+        <div class="hist-title">${r.machineName || r.machineId}</div>
+        <div class="hist-sub">🕐 ${r.time} &nbsp;·&nbsp; 👤 ${r.inspector}</div>
+        ${r.abnormalItems ? `<div class="hist-fail">⚠️ ${r.abnormalItems}</div>` : ''}
+        ${r.note ? `<div class="hist-sub" style="margin-top:3px">📝 ${r.note}</div>` : ''}
+      </div>
+      <span class="hist-badge hist-badge--${cls}">${label}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderCal(rows, container) {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  const firstDay = new Date(y, m, 1).getDay();
+  const days = new Date(y, m + 1, 0).getDate();
+
+  const dateMap = {};
+  rows.forEach(r => {
+    const d = (r.time || '').split(' ')[0];
+    if (!d) return;
+    if (!dateMap[d]) dateMap[d] = [];
+    dateMap[d].push(r.status);
+  });
+
+  const dayLabels = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+  const thMonth = now.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+
+  let html = `<div class="cal-wrap">
+    <div class="cal-month">${thMonth}</div>
+    <div class="cal-grid">
+      ${dayLabels.map(d => `<div class="cal-day-hd">${d}</div>`).join('')}
+      ${Array(firstDay).fill('<div></div>').join('')}`;
+
+  for (let d = 1; d <= days; d++) {
+    const key = `${y}/${String(m+1).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+    const statuses = dateMap[key] || [];
+    const hasAbn  = statuses.includes('ABNORMAL');
+    const hasNorm = statuses.some(s => s === 'NORMAL' || s === 'INCOMPLETE');
+    const cls = hasAbn ? 'cal-cell--fail' : hasNorm ? 'cal-cell--pass' : '';
+    const isToday = d === now.getDate();
+    html += `<div class="cal-cell ${cls} ${isToday ? 'cal-cell--today' : ''}">
+      ${d}
+      ${statuses.length ? `<div class="cal-dot cal-dot--${hasAbn ? 'fail' : 'pass'}"></div>` : ''}
+    </div>`;
+  }
+
+  html += `</div></div>`;
+  html += rows.map(r => {
+    const cls = r.status === 'NORMAL' ? 'pass' : r.status === 'ABNORMAL' ? 'fail' : 'inc';
+    const label = r.status === 'NORMAL' ? 'ปกติ' : r.status === 'ABNORMAL' ? 'ผิดปกติ' : 'ไม่ครบ';
+    return `<div class="hist-card">
+      <div class="hist-dot hist-dot--${cls}"></div>
+      <div class="hist-info">
+        <div class="hist-title">${r.machineName || r.machineId}</div>
+        <div class="hist-sub">🕐 ${r.time} · 👤 ${r.inspector}</div>
+        ${r.abnormalItems ? `<div class="hist-fail">⚠️ ${r.abnormalItems}</div>` : ''}
+      </div>
+      <span class="hist-badge hist-badge--${cls}">${label}</span>
+    </div>`;
+  }).join('');
+
+  container.innerHTML = html;
+}
+
+// ── UTILS ────────────────────────────────────────────
+function showOverlay(msg) {
+  document.getElementById('overlay-msg').textContent = msg;
+  document.getElementById('overlay').classList.add('show');
+}
+function hideOverlay() { document.getElementById('overlay').classList.remove('show'); }
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast toast--${type} show`;
+  setTimeout(() => t.className = 'toast', 4000);
+}
+
+init();
+</script>
+</body>
+</html>
