@@ -1,8 +1,3 @@
-// ════════════════════════════════════════════════════════════
-//  config.js — ตั้งค่าระบบตรวจสอบเครื่องจักร
-// ════════════════════════════════════════════════════════════
-
-// URL ของ Google Apps Script (ใส่หลัง Deploy)
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwC45128TSAaNoIWFhOviiGWRechDD-bvXi4DdrHhK9gtLMw5dAV6rRxWMEdqgOW_20/exec';
 
 const MACHINES = [
@@ -14,7 +9,7 @@ const MACHINES = [
     region: 'ภาคกลาง',
     me: 'คุณสมชาย ใจดี',
     location: 'โรงงานผสมคอนกรีต สาย 1',
-    notifyEmail: 'manager@company.com',
+    notifyEmail: 'boyphuwit@gmail.com',
     checks: [
       'แรงดันลมปกติ (7–8 bar)',
       'อุณหภูมิหัวสกรูปกติ (<85°C)',
@@ -33,7 +28,7 @@ const MACHINES = [
     region: 'ภาคกลาง',
     me: 'คุณสมชาย ใจดี',
     location: 'โรงงานผสมคอนกรีต สาย 1',
-    notifyEmail: 'manager@company.com',
+    notifyEmail: 'boyphuwit@gmail.com',
     checks: [
       'แรงดันลมปกติ (7–8 bar)',
       'อุณหภูมิหัวสกรูปกติ (<85°C)',
@@ -52,7 +47,7 @@ const MACHINES = [
     region: 'ภาคกลาง',
     me: 'คุณวิชัย มั่นคง',
     location: 'โรงงานผสมคอนกรีต สาย 1',
-    notifyEmail: 'manager@company.com',
+    notifyEmail: 'boyphuwit@gmail.com',
     checks: [
       'อุณหภูมิจุดน้ำค้างปกติ (<3°C)',
       'แรงดันขาออกปกติ',
