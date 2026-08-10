@@ -395,17 +395,17 @@ function init() {
   document.title = `ตรวจสอบ: ${machine.name}`;
   document.getElementById('hdr-name').textContent = machine.name;
   document.getElementById('hdr-meta').textContent =
-    [_user.plantCode || machine.fc, _user.plantName || machine.unit, machine.location]
-    .filter(Boolean).join(' · ');
+    [_user.plantCode, _user.plantName].filter(Boolean).join(' · ') ||
+    [machine.fc, machine.unit].filter(Boolean).join(' · ');
 
   // Info grid — ดึงจาก session (Database sheet) ก่อน ถ้าไม่มีใช้ config.js
   const infoFields = [
-    ['Machine ID',     machine.id, true],
+    ['Machine ID',      machine.id, true],
     ['ชื่อเครื่องจักร', machine.name],
-    ['Plant Code / FC', _user.plantCode || machine.fc || '—'],
-    ['Plant Name',      _user.plantName || machine.location || '—'],
-    ['Area',            _user.area      || machine.region || '—'],
-    ['EN-ME',           _user.enMe      || machine.me || '—'],
+    ['Plant Code',      _user.plantCode || '—'],
+    ['Plant Name',      _user.plantName || '—'],
+    ['Area',            _user.area      || '—'],
+    ['EN-ME',           _user.enMe      || '—'],
   ];
   document.getElementById('info-grid').innerHTML = infoFields.map(([label, val, mono]) => `
     <div class="info-cell">
