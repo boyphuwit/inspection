@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>ระบบตรวจสอบเครื่องจักร</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #DC2626; --primary-d: #991B1B; --primary-l: #FEF2F2;
+  --success: #1E7E4C; --success-l: #E6F5ED;
+  --border: #D1D5DB; --text: #111827; --sub: #4B5563; --muted: #9CA3AF;
+  --bg: #F3F6FB; --surface: #FFFFFF;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans Thai', sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(160deg, #991B1B, #DC2626);
+  color: #fff; padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header__left h1 { font-size: 18px; font-weight: 700; }
+.header__left p  { font-size: 12px; opacity: .75; margin-top: 2px; }
+.user-pill {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex; align-items: center; gap: 6px;
+  cursor: pointer;
+}
+
+/* Body */
+.body { max-width: 480px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 20px; }
+
+/* Welcome card */
+.welcome-card {
+  background: var(--surface);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  padding: 20px;
+  display: flex; align-items: center; gap: 14px;
+}
+.welcome-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: #FEF2F2;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.welcome-name { font-size: 16px; font-weight: 700; }
+.welcome-role { font-size: 12px; color: var(--sub); margin-top: 2px; }
+.welcome-time { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* Scan button */
+.scan-card {
+  background: #DC2626;
+  border-radius: 16px;
+  padding: 28px 24px;
+  text-align: center;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(27,79,138,.35);
+  transition: transform .15s, box-shadow .15s;
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+  display: block;
+}
+.scan-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(27,79,138,.4); }
+.scan-card:active { transform: scale(.98); }
+.scan-card__icon { font-size: 52px; margin-bottom: 12px; }
+.scan-card__title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.scan-card__sub { font-size: 13px; opacity: .85; }
+
+/* Manual select */
+.section-title { font-size: 13px; font-weight: 600; color: var(--sub); letter-spacing: .03em; }
+.machine-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.machine-btn {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 12px;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+  transition: border-color .15s, box-shadow .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.machine-btn:hover { border-color: #DC2626; box-shadow: 0 2px 8px rgba(27,79,138,.1); }
+.machine-btn__id { font-size: 10px; font-weight: 700; color: #DC2626; letter-spacing: .06em; margin-bottom: 4px; }
+.machine-btn__name { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; }
+
+/* Logout */
+.btn-logout {
+  width: 100%; padding: 13px;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px; font-weight: 600;
+  color: var(--sub); cursor: pointer;
+  transition: all .15s;
+}
+.btn-logout:hover { border-color: #B91C1C; color: #B91C1C; background: #FEF2F2; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header__left">
+    <h1>🔧 ระบบตรวจสอบเครื่องจักร</h1>
+    <p id="header-date"></p>
+  </div>
+  <div class="user-pill" onclick="logout()">
+    <span>👤</span>
+    <span id="user-name">—</span>
+    <span style="opacity:.6">ออก</span>
+  </div>
+</div>
+
+<div class="body">
+
+  <!-- Welcome -->
+  <div class="welcome-card">
+    <div class="welcome-icon">👷</div>
+    <div>
+      <div class="welcome-name" id="welcome-name">—</div>
+      <div class="welcome-role" id="welcome-role">—</div>
+      <div class="welcome-time" id="welcome-time">—</div>
+    </div>
+  </div>
+
+  <!-- Scan QR -->
+  <a class="scan-card" href="javascript:void(0)" onclick="startScan()">
+    <div class="scan-card__icon">📲</div>
+    <div class="scan-card__title">สแกน QR Code</div>
+    <div class="scan-card__sub">สแกน QR Code ที่ติดอยู่บนเครื่องจักร<br>เพื่อเปิดแบบฟอร์มตรวจสอบ</div>
+  </a>
+
+  <!-- หรือเลือกเอง -->
+  <div class="section-title">— หรือเลือกจุดตรวจสอบ —</div>
+  <div class="machine-grid" id="machine-grid"></div>
+
+  <!-- Logout -->
+  <button class="btn-logout" onclick="logout()">🚪 ออกจากระบบ</button>
+
+</div>
+
+<script src="js/config.js"></script>
+<script>
+// ── ตรวจสอบ Login ────────────────────────────────────────
+const userRaw = sessionStorage.getItem('rmx_user');
+if (!userRaw) {
+  window.location.href = 'login.html';
+}
+
+const user = JSON.parse(userRaw || '{}');
+
+// ── แสดงข้อมูล User ───────────────────────────────────────
+const now = new Date();
+document.getElementById('header-date').textContent =
+  now.toLocaleDateString('th-TH', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+document.getElementById('user-name').textContent    = user.username || '—';
+document.getElementById('welcome-name').textContent = user.plantName
+  ? `${user.plantName} (${user.plantCode})`
+  : user.username || '—';
+document.getElementById('welcome-role').textContent =
+  [user.area, user.enMe ? 'EN-ME: ' + user.enMe : ''].filter(Boolean).join(' · ') || 'ช่างตรวจสอบ';
+document.getElementById('welcome-time').textContent =
+  `ผู้ใช้: ${user.username} · เข้าสู่ระบบ: ${now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}`;
+
+// ── สร้างรายการเครื่องจักร ───────────────────────────────
+const grid = document.getElementById('machine-grid');
+if (typeof MACHINES !== 'undefined') {
+  MACHINES.forEach(m => {
+    const a = document.createElement('a');
+    a.className = 'machine-btn';
+    a.href = `inspect.html?id=${encodeURIComponent(m.id)}`;
+    a.innerHTML = `
+      <div class="machine-btn__id">${m.id}</div>
+      <div class="machine-btn__name">${m.name}</div>`;
+    grid.appendChild(a);
+  });
+}
+
+// ── สแกน QR ───────────────────────────────────────────────
+function startScan() {
+  // เปิด camera QR scanner (ใช้ API มือถือ)
+  // ถ้ามี BarcodeDetector API (Android Chrome)
+  if ('BarcodeDetector' in window) {
+    scanWithBarcodeDetector();
+  } else {
+    // Fallback: แสดง prompt ให้กรอก ID
+    const id = prompt('กรอก Machine ID หรือสแกน QR Code:');
+    if (id) window.location.href = `inspect.html?id=${encodeURIComponent(id.trim())}`;
+  }
+}
+
+async function scanWithBarcodeDetector() {
+  try {
+    const detector = new BarcodeDetector({ formats: ['qr_code'] });
+    const stream   = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+
+    // สร้าง overlay กล้อง
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px';
+
+    const video = document.createElement('video');
+    video.style.cssText = 'width:100%;max-width:400px;border-radius:12px';
+    video.srcObject = stream;
+    video.play();
+
+    const hint = document.createElement('div');
+    hint.style.cssText = 'color:#fff;font-size:14px;font-weight:600';
+    hint.textContent = 'จ่อกล้องที่ QR Code บนเครื่องจักร';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕ ยกเลิก';
+    closeBtn.style.cssText = 'padding:10px 24px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:8px;font-size:14px;cursor:pointer';
+    closeBtn.onclick = () => { stream.getTracks().forEach(t => t.stop()); document.body.removeChild(overlay); };
+
+    overlay.appendChild(video);
+    overlay.appendChild(hint);
+    overlay.appendChild(closeBtn);
+    document.body.appendChild(overlay);
+
+    // สแกนทุก 500ms
+    const interval = setInterval(async () => {
+      try {
+        const barcodes = await detector.detect(video);
+        if (barcodes.length > 0) {
+          clearInterval(interval);
+          stream.getTracks().forEach(t => t.stop());
+          document.body.removeChild(overlay);
+          const url = barcodes[0].rawValue;
+          // ถ้าเป็น URL → ดึง id parameter
+          try {
+            const params = new URL(url).searchParams;
+            const id = params.get('id');
+            if (id) window.location.href = `inspect.html?id=${encodeURIComponent(id)}`;
+            else window.location.href = url;
+          } catch {
+            window.location.href = `inspect.html?id=${encodeURIComponent(url)}`;
+          }
+        }
+      } catch {}
+    }, 500);
+  } catch(err) {
+    alert('ไม่สามารถเปิดกล้องได้: ' + err.message);
+  }
+}
+
+// ── Logout ────────────────────────────────────────────────
+function logout() {
+  if (confirm('ต้องการออกจากระบบหรือไม่?')) {
+    sessionStorage.removeItem('rmx_user');
+    window.location.href = 'login.html';
+  }
+}
+</script>
+</body>
+</html>
