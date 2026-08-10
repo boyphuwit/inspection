@@ -9,8 +9,8 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --c-primary:   #1B4F8A;
-  --c-primary-d: #0F3260;
+  --c-primary:   #DC2626;
+  --c-primary-d: #991B1B;
   --c-primary-l: #E8F0FA;
   --c-success:   #1E7E4C;
   --c-success-l: #E6F5ED;
@@ -433,7 +433,7 @@ function renderChecklist() {
 
   checks.forEach(c => {
     if (c.section && c.section !== lastSection) {
-      html += `<div style="padding:8px 16px;background:#EFF6FF;border-bottom:1px solid #BFDBFE;border-top:1px solid #BFDBFE;font-size:12px;font-weight:700;color:#1B4F8A">${c.section}</div>`;
+      html += `<div style="padding:8px 16px;background:#FEF2F2;border-bottom:1px solid #BFDBFE;border-top:1px solid #BFDBFE;font-size:12px;font-weight:700;color:#DC2626">${c.section}</div>`;
       lastSection = c.section;
     }
     const rowCls = c.state === 'normal' ? 'cl-row--pass' : c.state === 'abnormal' ? 'cl-row--fail' : '';

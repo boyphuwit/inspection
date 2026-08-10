@@ -8,9 +8,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --primary:   #1B4F8A;
-  --primary-d: #0F3260;
-  --primary-l: #E8F0FA;
+  --primary:   #DC2626;
+  --primary-d: #991B1B;
+  --primary-l: #FEF2F2;
   --danger:    #B91C1C;
   --border:    #D1D5DB;
   --text:      #111827;
@@ -40,7 +40,7 @@ body {
 }
 
 .login-header {
-  background: linear-gradient(160deg, var(--primary-d) 0%, var(--primary) 100%);
+  background: linear-gradient(160deg, #991B1B 0%, #DC2626 100%);
   padding: 32px 28px 28px;
   text-align: center;
   color: #fff;
@@ -98,7 +98,7 @@ body {
 }
 
 .field input:focus {
-  border-color: var(--primary);
+  border-color: #DC2626;
   background: #fff;
 }
 
@@ -119,7 +119,7 @@ body {
 .btn-login {
   width: 100%;
   padding: 14px;
-  background: var(--primary);
+  background: #DC2626;
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -133,7 +133,7 @@ body {
   transition: background .15s, transform .1s;
   -webkit-tap-highlight-color: transparent;
 }
-.btn-login:hover { background: var(--primary-d); }
+.btn-login:hover { background: #991B1B; }
 .btn-login:active { transform: scale(.98); }
 .btn-login:disabled { opacity: .6; cursor: not-allowed; }
 
