@@ -224,10 +224,14 @@ async function doLogin() {
     if (data.status === 'ok' && data.user) {
       // บันทึก session ใน sessionStorage
       sessionStorage.setItem('rmx_user', JSON.stringify({
-        username: data.user.username,
-        name:     data.user.name,
-        role:     data.user.role,
-        loginAt:  new Date().toISOString()
+        username:  data.user.username,
+        name:      data.user.name,
+        plantCode: data.user.plantCode || '',
+        plantName: data.user.plantName || '',
+        area:      data.user.area      || '',
+        enMe:      data.user.enMe      || '',
+        email:     data.user.email     || '',
+        loginAt:   new Date().toISOString()
       }));
       // ไปหน้า QR Scanner
       window.location.href = 'index.html';
