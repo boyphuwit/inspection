@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>เข้าสู่ระบบ — ระบบตรวจสอบเครื่องจักร</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary:   #1B4F8A;
+  --primary-d: #0F3260;
+  --primary-l: #E8F0FA;
+  --danger:    #B91C1C;
+  --border:    #D1D5DB;
+  --text:      #111827;
+  --sub:       #4B5563;
+  --muted:     #9CA3AF;
+  --bg:        #F3F6FB;
+  --surface:   #FFFFFF;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans Thai', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.login-card {
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.12);
+  width: 100%;
+  max-width: 400px;
+  overflow: hidden;
+}
+
+.login-header {
+  background: linear-gradient(160deg, var(--primary-d) 0%, var(--primary) 100%);
+  padding: 32px 28px 28px;
+  text-align: center;
+  color: #fff;
+}
+
+.login-header__icon {
+  width: 64px; height: 64px;
+  background: rgba(255,255,255,.15);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px;
+  margin: 0 auto 16px;
+}
+
+.login-header__title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.login-header__sub {
+  font-size: 13px;
+  opacity: .8;
+}
+
+.login-body {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sub);
+}
+
+.field input {
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text);
+  background: #FAFAFA;
+  outline: none;
+  transition: border-color .15s, background .15s;
+}
+
+.field input:focus {
+  border-color: var(--primary);
+  background: #fff;
+}
+
+.field input::placeholder { color: var(--muted); }
+
+.error-msg {
+  display: none;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--danger);
+  text-align: center;
+}
+.error-msg.show { display: block; }
+
+.btn-login {
+  width: 100%;
+  padding: 14px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background .15s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-login:hover { background: var(--primary-d); }
+.btn-login:active { transform: scale(.98); }
+.btn-login:disabled { opacity: .6; cursor: not-allowed; }
+
+.login-footer {
+  padding: 16px 28px;
+  background: #F9FAFB;
+  border-top: 1px solid #F3F4F6;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Spinner */
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: none;
+}
+.spinner.show { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="login-header">
+    <div class="login-header__icon">🔧</div>
+    <div class="login-header__title">ระบบตรวจสอบเครื่องจักร</div>
+    <div class="login-header__sub">กรุณาเข้าสู่ระบบก่อนใช้งาน</div>
+  </div>
+
+  <div class="login-body">
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="username" placeholder="กรอก username" autocomplete="username" autocapitalize="none">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="กรอก password" autocomplete="current-password">
+    </div>
+
+    <div class="error-msg" id="error-msg">❌ Username หรือ Password ไม่ถูกต้อง</div>
+
+    <button class="btn-login" id="btn-login" onclick="doLogin()">
+      <div class="spinner" id="spinner"></div>
+      <span id="btn-text">เข้าสู่ระบบ</span>
+    </button>
+  </div>
+
+  <div class="login-footer">
+    หากลืม Password กรุณาติดต่อผู้ดูแลระบบ
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+// Enter key submit
+document.getElementById('password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('username').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('password').focus();
+});
+
+async function doLogin() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+
+  if (!username || !password) {
+    showError('กรุณากรอก Username และ Password');
+    return;
+  }
+
+  setLoading(true);
+  hideError();
+
+  try {
+    const url = GAS_URL + '?action=login'
+      + '&username=' + encodeURIComponent(username)
+      + '&password=' + encodeURIComponent(password);
+
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    if (data.status === 'ok' && data.user) {
+      // บันทึก session ใน sessionStorage
+      sessionStorage.setItem('rmx_user', JSON.stringify({
+        username: data.user.username,
+        name:     data.user.name,
+        role:     data.user.role,
+        loginAt:  new Date().toISOString()
+      }));
+      // ไปหน้า QR Scanner
+      window.location.href = 'index.html';
+    } else {
+      showError('Username หรือ Password ไม่ถูกต้อง');
+    }
+  } catch(err) {
+    showError('เชื่อมต่อระบบไม่ได้ กรุณาลองใหม่');
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+}
+
+function setLoading(on) {
+  document.getElementById('btn-login').disabled = on;
+  document.getElementById('spinner').className = on ? 'spinner show' : 'spinner';
+  document.getElementById('btn-text').textContent = on ? 'กำลังตรวจสอบ…' : 'เข้าสู่ระบบ';
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = '❌ ' + msg;
+  el.classList.add('show');
+}
+
+function hideError() {
+  document.getElementById('error-msg').classList.remove('show');
+}
+</script>
+</body>
+</html>

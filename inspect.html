@@ -275,7 +275,10 @@ body {
       <div class="app-header__machine" id="hdr-name">กำลังโหลด…</div>
       <div class="app-header__meta" id="hdr-meta"></div>
     </div>
+    <div style="display:flex;gap:8px;align-items:center">
+    <a href="index.html" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;color:#fff;text-decoration:none">← หน้าหลัก</a>
     <div class="scan-pill"><div class="scan-pill__dot"></div> สแกนแล้ว</div>
+  </div>
   </div>
 </header>
 
@@ -348,6 +351,11 @@ body {
 
 <script src="js/config.js"></script>
 <script>
+// ── ตรวจสอบ Login ────────────────────────────────────────
+const _userRaw = sessionStorage.getItem('rmx_user');
+if (!_userRaw) { window.location.href = 'login.html'; }
+const _user = JSON.parse(_userRaw || '{}');
+
 // ── CONFIG (อัปเดตใน config.js) ──────────────────────
 const SCRIPT_URL = typeof GAS_URL !== 'undefined' ? GAS_URL : '';
 
@@ -366,6 +374,12 @@ function init() {
   document.getElementById('hdr-date').textContent =
     now.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' +
     now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+
+  // Auto-fill ชื่อผู้ตรวจจาก session
+  if (_user && _user.name) {
+    const inspectorInput = document.getElementById('inspector');
+    if (inspectorInput) inspectorInput.value = _user.name;
+  }
 
   if (!id || typeof MACHINES === 'undefined') {
     document.getElementById('hdr-name').textContent = 'ไม่พบข้อมูลเครื่องจักร';
@@ -402,6 +416,7 @@ function init() {
   checks = machine.checks.map((c, i) => ({
     id: i,
     label: typeof c === 'string' ? c : c.label,
+    section: typeof c === 'object' ? c.section || '' : '',
     state: 'pending'
   }));
 
@@ -412,7 +427,14 @@ function init() {
 // ── CHECKLIST ─────────────────────────────────────────
 function renderChecklist() {
   const list = document.getElementById('checklist');
-  list.innerHTML = checks.map(c => {
+  let html = '';
+  let lastSection = '';
+
+  checks.forEach(c => {
+    if (c.section && c.section !== lastSection) {
+      html += `<div style="padding:8px 16px;background:#EFF6FF;border-bottom:1px solid #BFDBFE;border-top:1px solid #BFDBFE;font-size:12px;font-weight:700;color:#1B4F8A">${c.section}</div>`;
+      lastSection = c.section;
+    }
     const rowCls = c.state === 'normal' ? 'cl-row--pass' : c.state === 'abnormal' ? 'cl-row--fail' : '';
     const hasPhoto = !!photos[c.id];
     const badge = c.state === 'normal'
@@ -420,23 +442,14 @@ function renderChecklist() {
       : c.state === 'abnormal'
       ? '<span class="status-badge status-badge--fail">ผิดปกติ</span>'
       : '';
-
-    return `<div class="cl-row ${rowCls}" id="clrow-${c.id}">
-      <div class="cl-row__label">
-        <span class="cl-row__num">${c.id + 1}.</span>
-        <span>${c.label}</span>
-        ${badge}
-      </div>
-      <button class="cl-btn cl-btn--pass ${c.state === 'normal' ? 'active' : ''}"
-        onclick="setCheck(${c.id},'normal')">✓ ปกติ</button>
-      <button class="cl-btn cl-btn--fail ${c.state === 'abnormal' ? 'active' : ''}"
-        onclick="setCheck(${c.id},'abnormal')">✗ ผิดปกติ</button>
-      <label class="photo-btn ${hasPhoto ? 'photo-btn--has' : ''}">
-        ${hasPhoto ? '📸' : '📷'}
-        <input type="file" accept="image/*" capture="environment" onchange="addPhoto(event,${c.id})">
-      </label>
+    html += `<div class="cl-row ${rowCls}" id="clrow-${c.id}">
+      <div class="cl-row__label"><span>${c.label}</span>${badge}</div>
+      <button class="cl-btn cl-btn--pass ${c.state === 'normal' ? 'active' : ''}" onclick="setCheck(${c.id},'normal')">✓ ปกติ</button>
+      <button class="cl-btn cl-btn--fail ${c.state === 'abnormal' ? 'active' : ''}" onclick="setCheck(${c.id},'abnormal')">✗ ผิดปกติ</button>
+      <label class="photo-btn ${hasPhoto ? 'photo-btn--has' : ''}">${hasPhoto ? '📸' : '📷'}<input type="file" accept="image/*" capture="environment" onchange="addPhoto(event,${c.id})"></label>
     </div>`;
-  }).join('');
+  });
+  list.innerHTML = html;
 }
 
 function setCheck(id, state) {
@@ -509,15 +522,21 @@ async function submitForm() {
     const note     = document.getElementById('note').value.trim();
     const status   = abnormal.length > 0 ? 'ABNORMAL' : pending > 0 ? 'INCOMPLETE' : 'NORMAL';
 
+    // ดึงข้อมูล Plant จาก session login
+    const _sess = JSON.parse(sessionStorage.getItem('rmx_user') || '{}');
+
     const payload = {
-      timestamp:   now,
-      machineId:   machine.id,
-      machineName: machine.name,
-      fc:          machine.fc   || '',
-      unit:        machine.unit || '',
-      region:      machine.region || '',
-      me:          machine.me   || '',
-      location:    machine.location || '',
+      timestamp:    now,
+      machineId:    machine.id,
+      machineName:  machine.name,
+      plantCode:    _sess.plantCode || machine.fc || '',
+      plantName:    _sess.plantName || machine.name || '',
+      area:         _sess.area      || machine.region || '',
+      enMe:         _sess.enMe      || machine.me || '',
+      fc:           _sess.plantCode || machine.fc || '',
+      unit:         machine.unit    || '',
+      me:           _sess.enMe      || machine.me || '',
+      location:     machine.location || '',
       inspector,
       status,
       normalCount:   normal.length,
@@ -525,7 +544,7 @@ async function submitForm() {
       abnormalItems: abnormal.map(c => c.label).join(', '),
       note,
       photos:        Object.values(photos).filter(Boolean),
-      notifyEmail:   machine.notifyEmail || '',
+      notifyEmail:   _sess.email || machine.notifyEmail || '',
       saveToSheet:   true
     };
 
@@ -541,6 +560,10 @@ async function submitForm() {
       timestamp:     payload.timestamp,
       machineId:     payload.machineId,
       machineName:   payload.machineName,
+      plantCode:     payload.plantCode,
+      plantName:     payload.plantName,
+      area:          payload.area,
+      enMe:          payload.enMe,
       fc:            payload.fc,
       unit:          payload.unit,
       region:        payload.region,
