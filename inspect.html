@@ -375,10 +375,10 @@ function init() {
     now.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' +
     now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
-  // Auto-fill ชื่อผู้ตรวจจาก session
-  if (_user && _user.name) {
+  // Auto-fill ผู้ตรวจจาก session (ใช้ username)
+  if (_user && (_user.name || _user.username)) {
     const inspectorInput = document.getElementById('inspector');
-    if (inspectorInput) inspectorInput.value = _user.name;
+    if (inspectorInput) inspectorInput.value = _user.name || _user.username;
   }
 
   if (!id || typeof MACHINES === 'undefined') {
@@ -395,16 +395,17 @@ function init() {
   document.title = `ตรวจสอบ: ${machine.name}`;
   document.getElementById('hdr-name').textContent = machine.name;
   document.getElementById('hdr-meta').textContent =
-    [machine.fc, machine.unit, machine.location].filter(Boolean).join(' · ');
+    [_user.plantCode || machine.fc, _user.plantName || machine.unit, machine.location]
+    .filter(Boolean).join(' · ');
 
-  // Info grid
+  // Info grid — ดึงจาก session (Database sheet) ก่อน ถ้าไม่มีใช้ config.js
   const infoFields = [
-    ['Machine ID', machine.id, true],
+    ['Machine ID',     machine.id, true],
     ['ชื่อเครื่องจักร', machine.name],
-    ['โรงงาน / FC', machine.fc || '—'],
-    ['หน่วยผลิต', machine.unit || '—'],
-    ['ภูมิภาค', machine.region || '—'],
-    ['ME ผู้ดูแล', machine.me || '—'],
+    ['Plant Code / FC', _user.plantCode || machine.fc || '—'],
+    ['Plant Name',      _user.plantName || machine.location || '—'],
+    ['Area',            _user.area      || machine.region || '—'],
+    ['EN-ME',           _user.enMe      || machine.me || '—'],
   ];
   document.getElementById('info-grid').innerHTML = infoFields.map(([label, val, mono]) => `
     <div class="info-cell">
