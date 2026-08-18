@@ -6,20 +6,18 @@
 <title>เข้าสู่ระบบ — ระบบตรวจสอบเครื่องจักร</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
-  --primary:   #DC2626;
+  --primary: #DC2626;
   --primary-d: #991B1B;
   --primary-l: #FEF2F2;
-  --danger:    #B91C1C;
-  --border:    #D1D5DB;
-  --text:      #111827;
-  --sub:       #4B5563;
-  --muted:     #9CA3AF;
-  --bg:        #F3F6FB;
-  --surface:   #FFFFFF;
+  --danger: #B91C1C;
+  --border: #D1D5DB;
+  --text: #111827;
+  --sub: #4B5563;
+  --muted: #9CA3AF;
+  --bg: #F3F6FB;
+  --surface: #FFFFFF;
 }
-
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans Thai', sans-serif;
   background: var(--bg);
@@ -29,7 +27,6 @@ body {
   justify-content: center;
   padding: 24px 16px;
 }
-
 .login-card {
   background: var(--surface);
   border-radius: 16px;
@@ -38,14 +35,12 @@ body {
   max-width: 400px;
   overflow: hidden;
 }
-
 .login-header {
   background: linear-gradient(160deg, #991B1B 0%, #DC2626 100%);
   padding: 32px 28px 28px;
   text-align: center;
   color: #fff;
 }
-
 .login-header__icon {
   width: 64px; height: 64px;
   background: rgba(255,255,255,.15);
@@ -54,37 +49,31 @@ body {
   font-size: 30px;
   margin: 0 auto 16px;
 }
-
 .login-header__title {
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 4px;
 }
-
 .login-header__sub {
   font-size: 13px;
   opacity: .8;
 }
-
 .login-body {
   padding: 28px;
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
-
 .field {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-
 .field label {
   font-size: 13px;
   font-weight: 600;
   color: var(--sub);
 }
-
 .field input {
   padding: 12px 14px;
   border: 1.5px solid var(--border);
@@ -96,14 +85,11 @@ body {
   outline: none;
   transition: border-color .15s, background .15s;
 }
-
 .field input:focus {
   border-color: #DC2626;
   background: #fff;
 }
-
 .field input::placeholder { color: var(--muted); }
-
 .error-msg {
   display: none;
   background: #FEF2F2;
@@ -115,7 +101,6 @@ body {
   text-align: center;
 }
 .error-msg.show { display: block; }
-
 .btn-login {
   width: 100%;
   padding: 14px;
@@ -136,7 +121,6 @@ body {
 .btn-login:hover { background: #991B1B; }
 .btn-login:active { transform: scale(.98); }
 .btn-login:disabled { opacity: .6; cursor: not-allowed; }
-
 .login-footer {
   padding: 16px 28px;
   background: #F9FAFB;
@@ -145,7 +129,6 @@ body {
   font-size: 12px;
   color: var(--muted);
 }
-
 /* Spinner */
 .spinner {
   width: 18px; height: 18px;
@@ -224,15 +207,17 @@ async function doLogin() {
     if (data.status === 'ok' && data.user) {
       // บันทึก session ใน sessionStorage
       sessionStorage.setItem('rmx_user', JSON.stringify({
-        username:  data.user.username,
-        name:      data.user.name,
+        username: data.user.username,
+        name: data.user.name,
         plantCode: data.user.plantCode || '',
         plantName: data.user.plantName || '',
-        area:      data.user.area      || '',
-        enMe:      data.user.enMe      || '',
-        email:     data.user.email     || '',
-        loginAt:   new Date().toISOString()
+        area: data.user.area || '',
+        enMe: data.user.enMe || '',
+        email: data.user.email || '',
+        role: data.user.role || 'technician',
+        loginAt: new Date().toISOString()
       }));
+
       // ไปหน้า QR Scanner
       window.location.href = 'index.html';
     } else {
