@@ -1,12 +1,12 @@
 // ════════════════════════════════════════════════════════════
-//  Code.gs — Google Apps Script Backend
-//  Database Sheet: "Data base"
-//  Columns: A=User, B=Password, C=Plant Code, D=Plant Name,
-//           E=Area, F=EN-ME, G=Plant E-mail
+// Code.gs — Google Apps Script Backend
+// Database Sheet: "Data base"
+// Columns: A=User, B=Password, C=Plant Code, D=Plant Name,
+//          E=Area, F=EN-ME, G=Plant E-mail
 // ════════════════════════════════════════════════════════════
 
-const SHEET_DB   = 'Data base';  // Sheet ข้อมูล User
-const SHEET_DATA = 'Data';       // Sheet บันทึกผลตรวจ
+const SHEET_DB   = 'Data base'; // Sheet ข้อมูล User
+const SHEET_DATA = 'Data';      // Sheet บันทึกผลตรวจ
 
 function doGet(e) {
   try {
@@ -16,7 +16,7 @@ function doGet(e) {
     if (action === 'login') {
       const username = (e.parameter.username || '').trim();
       const password = (e.parameter.password || '').trim();
-      const user     = checkLogin(username, password);
+      const user = checkLogin(username, password);
 
       if (user) {
         return ContentService
@@ -50,7 +50,6 @@ function doGet(e) {
     }
 
     return ok('Machine Inspection API Ready');
-
   } catch(err) {
     Logger.log('doGet error: ' + err);
     return ContentService
@@ -63,7 +62,7 @@ function doGet(e) {
 // Columns: A=User, B=Password, C=Plant Code, D=Plant Name,
 //          E=Area, F=EN-ME, G=Plant E-mail
 function checkLogin(username, password) {
-  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_DB);
   if (!sheet) {
     Logger.log('Sheet "Data base" not found');
@@ -81,16 +80,17 @@ function checkLogin(username, password) {
 
     if (u === username && p === password) {
       return {
-        username:  u,
-        password:  p,
+        username: u,
+        password: p,
         plantCode: String(row[2]).trim(), // C = Plant Code
         plantName: String(row[3]).trim(), // D = Plant Name
-        area:      String(row[4]).trim(), // E = Area
-        enMe:      String(row[5]).trim(), // F = EN-ME
-        email:     String(row[6]).trim(), // G = Plant E-mail
+        area: String(row[4]).trim(),      // E = Area
+        enMe: String(row[5]).trim(),      // F = EN-ME
+        email: String(row[6]).trim(),     // G = Plant E-mail
         // สำหรับแสดงผลในหน้าตรวจ
-        name:      u,
-        role:      'technician'
+        name: u,
+        // admin = username "admin" เท่านั้น จะเห็นเมนู "หรือเลือกจุดตรวจสอบ"
+        role: u.toLowerCase() === 'admin' ? 'admin' : 'technician'
       };
     }
   }
@@ -99,7 +99,7 @@ function checkLogin(username, password) {
 
 // ── บันทึกลง Sheet "Data" ────────────────────────────────────
 function saveToSheet(data) {
-  const ss  = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(SHEET_DATA);
   if (!sheet) sheet = ss.insertSheet(SHEET_DATA);
 
@@ -110,11 +110,11 @@ function saveToSheet(data) {
       'วันเวลา','Plant Code','Plant Name','Area','EN-ME',
       'ผู้ตรวจสอบ','ผลการตรวจ'
     ];
-    const chk  = checks.map(c =>
+    const chk = checks.map(c =>
       c.label.replace(/^\d+[a-z]*\.\s*\[.*?\]\s*/, '').split('—')[0].trim()
     );
     const tail = ['รายการผิดปกติ','หมายเหตุ','รูปที่ 1','รูปที่ 2','รูปที่ 3'];
-    const all  = [...base, ...chk, ...tail];
+    const all = [...base, ...chk, ...tail];
     sheet.appendRow(all);
     sheet.getRange(1,1,1,all.length)
       .setBackground('#1B4F8A').setFontColor('#fff').setFontWeight('bold');
@@ -122,13 +122,13 @@ function saveToSheet(data) {
   }
 
   const base = [
-    data.timestamp   || new Date().toLocaleString('th-TH'),
-    data.plantCode   || data.fc || '',
-    data.plantName   || data.machineName || '',
-    data.area        || '',
-    data.enMe        || data.me || '',
-    data.inspector   || '',
-    data.status      || '',
+    data.timestamp || new Date().toLocaleString('th-TH'),
+    data.plantCode || data.fc || '',
+    data.plantName || data.machineName || '',
+    data.area || '',
+    data.enMe || data.me || '',
+    data.inspector || '',
+    data.status || '',
   ];
   const chkVals = checks.map(c =>
     c.state === 'normal' ? 'ปกติ' : c.state === 'abnormal' ? 'ผิดปกติ' : '—'
@@ -138,7 +138,7 @@ function saveToSheet(data) {
   sheet.appendRow([...base, ...chkVals, ...tail]);
 
   // ระบายสีแถว
-  const lastRow  = sheet.getLastRow();
+  const lastRow = sheet.getLastRow();
   const totalCol = base.length + chkVals.length + tail.length;
   const rowRange = sheet.getRange(lastRow, 1, 1, totalCol);
 
@@ -157,17 +157,18 @@ function saveToSheet(data) {
 
 // ── History ──────────────────────────────────────────────────
 function getHistory(machineId, months) {
-  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_DATA);
   if (!sheet || sheet.getLastRow() < 2) return [];
 
-  const cutoff  = new Date();
+  const cutoff = new Date();
   cutoff.setMonth(cutoff.getMonth() - months);
+
   const lastCol = sheet.getLastColumn();
   const headers = sheet.getRange(1,1,1,lastCol).getValues()[0];
   const statusIdx = headers.indexOf('ผลการตรวจ');
-  const abnIdx    = headers.indexOf('รายการผิดปกติ');
-  const noteIdx   = headers.indexOf('หมายเหตุ');
+  const abnIdx = headers.indexOf('รายการผิดปกติ');
+  const noteIdx = headers.indexOf('หมายเหตุ');
 
   return sheet.getRange(2,1,sheet.getLastRow()-1,lastCol).getValues()
     .filter(r => {
@@ -175,11 +176,11 @@ function getHistory(machineId, months) {
       return !isNaN(d) && d >= cutoff;
     })
     .map(r => ({
-      time:          r[0] instanceof Date ? r[0].toLocaleString('th-TH') : String(r[0]),
-      plantCode:     r[1], plantName: r[2], inspector: r[5],
-      status:        statusIdx >= 0 ? r[statusIdx] : '',
-      abnormalItems: abnIdx    >= 0 ? r[abnIdx]    : '',
-      note:          noteIdx   >= 0 ? r[noteIdx]   : '',
+      time: r[0] instanceof Date ? r[0].toLocaleString('th-TH') : String(r[0]),
+      plantCode: r[1], plantName: r[2], inspector: r[5],
+      status: statusIdx >= 0 ? r[statusIdx] : '',
+      abnormalItems: abnIdx >= 0 ? r[abnIdx] : '',
+      note: noteIdx >= 0 ? r[noteIdx] : '',
     }))
     .reverse();
 }
@@ -187,45 +188,46 @@ function getHistory(machineId, months) {
 // ── Email แจ้งเตือน ──────────────────────────────────────────
 function sendAbnormalEmail(data, toEmail) {
   if (!toEmail) return;
+
   const subject = `⚠️ พบความผิดปกติ: ${data.plantName || data.plantCode}`;
   const abnList = (data.abnormalItems || '').split(',')
     .filter(s => s.trim())
     .map(s => `<li style="margin:4px 0">${s.trim()}</li>`).join('');
 
   const html = `
-<div style="font-family:sans-serif;max-width:580px;margin:0 auto">
-  <div style="background:linear-gradient(135deg,#0F3260,#1B4F8A);color:#fff;padding:22px 24px;border-radius:10px 10px 0 0">
-    <div style="font-size:11px;opacity:.75;margin-bottom:6px">ระบบตรวจสอบเครื่องจักร — แจ้งเตือนอัตโนมัติ</div>
-    <div style="font-size:22px;font-weight:700">⚠️ พบความผิดปกติ</div>
-    <div style="font-size:15px;margin-top:4px;opacity:.9">${data.plantName||''} (${data.plantCode||''})</div>
-  </div>
-  <div style="background:#fff;padding:22px 24px;border:1px solid #E5E7EB;border-top:none">
-    <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
-      ${[
-        ['Plant Code', data.plantCode||'—'],
-        ['Plant Name', data.plantName||'—'],
-        ['Area',       data.area||'—'],
-        ['EN-ME',      data.enMe||'—'],
-        ['ผู้ตรวจสอบ', data.inspector||'—'],
-        ['วันเวลา',    data.timestamp||'—'],
-      ].map(([l,v])=>`<tr style="border-bottom:1px solid #F3F4F6">
-        <td style="padding:9px 12px;background:#F9FAFB;font-weight:600;font-size:13px;color:#4B5563;width:40%">${l}</td>
-        <td style="padding:9px 12px;font-size:13px">${v}</td></tr>`).join('')}
-      <tr><td style="padding:9px 12px;background:#FEF2F2;font-weight:600;font-size:13px;color:#B91C1C">ผลการตรวจ</td>
-          <td style="padding:9px 12px;background:#FEF2F2;font-weight:700;color:#B91C1C">❌ ABNORMAL</td></tr>
-    </table>
-    ${abnList?`<div style="background:#FEF2F2;border-left:4px solid #B91C1C;border-radius:4px;padding:14px 16px;margin-bottom:16px">
-      <b style="color:#B91C1C">รายการที่ผิดปกติ:</b>
-      <ul style="margin:8px 0 0;padding-left:20px;color:#7F1D1D">${abnList}</ul></div>`:''}
-    ${data.note?`<div style="background:#EFF6FF;border-left:4px solid #1B4F8A;border-radius:4px;padding:14px 16px">
-      <b style="color:#1B4F8A">หมายเหตุ:</b>
-      <div style="margin-top:6px;font-size:13px;color:#1E3A5F">${data.note}</div></div>`:''}
-    <div style="margin-top:16px;background:#FFFBEB;border-radius:6px;padding:12px 16px;font-size:13px;color:#92400E">
-      ⚡ กรุณาดำเนินการตรวจสอบและแก้ไขโดยด่วน</div>
-  </div>
-  <div style="background:#F9FAFB;padding:10px;text-align:center;font-size:11px;color:#9CA3AF;border-radius:0 0 10px 10px;border:1px solid #E5E7EB;border-top:none">
-    แจ้งเตือนอัตโนมัติโดยระบบตรวจสอบเครื่องจักร</div>
-</div>`;
+  <div style="font-family:sans-serif;max-width:580px;margin:0 auto">
+    <div style="background:linear-gradient(135deg,#0F3260,#1B4F8A);color:#fff;padding:22px 24px;border-radius:10px 10px 0 0">
+      <div style="font-size:11px;opacity:.75;margin-bottom:6px">ระบบตรวจสอบเครื่องจักร — แจ้งเตือนอัตโนมัติ</div>
+      <div style="font-size:22px;font-weight:700">⚠️ พบความผิดปกติ</div>
+      <div style="font-size:15px;margin-top:4px;opacity:.9">${data.plantName||''} (${data.plantCode||''})</div>
+    </div>
+    <div style="background:#fff;padding:22px 24px;border:1px solid #E5E7EB;border-top:none">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+        ${[
+          ['Plant Code', data.plantCode||'—'],
+          ['Plant Name', data.plantName||'—'],
+          ['Area', data.area||'—'],
+          ['EN-ME', data.enMe||'—'],
+          ['ผู้ตรวจสอบ', data.inspector||'—'],
+          ['วันเวลา', data.timestamp||'—'],
+        ].map(([l,v])=>`<tr style="border-bottom:1px solid #F3F4F6">
+          <td style="padding:9px 12px;background:#F9FAFB;font-weight:600;font-size:13px;color:#4B5563;width:40%">${l}</td>
+          <td style="padding:9px 12px;font-size:13px">${v}</td></tr>`).join('')}
+        <tr><td style="padding:9px 12px;background:#FEF2F2;font-weight:600;font-size:13px;color:#B91C1C">ผลการตรวจ</td>
+        <td style="padding:9px 12px;background:#FEF2F2;font-weight:700;color:#B91C1C">❌ ABNORMAL</td></tr>
+      </table>
+      ${abnList?`<div style="background:#FEF2F2;border-left:4px solid #B91C1C;border-radius:4px;padding:14px 16px;margin-bottom:16px">
+        <b style="color:#B91C1C">รายการที่ผิดปกติ:</b>
+        <ul style="margin:8px 0 0;padding-left:20px;color:#7F1D1D">${abnList}</ul></div>`:''}
+      ${data.note?`<div style="background:#EFF6FF;border-left:4px solid #1B4F8A;border-radius:4px;padding:14px 16px">
+        <b style="color:#1B4F8A">หมายเหตุ:</b>
+        <div style="margin-top:6px;font-size:13px;color:#1E3A5F">${data.note}</div></div>`:''}
+      <div style="margin-top:16px;background:#FFFBEB;border-radius:6px;padding:12px 16px;font-size:13px;color:#92400E">
+        ⚡ กรุณาดำเนินการตรวจสอบและแก้ไขโดยด่วน</div>
+    </div>
+    <div style="background:#F9FAFB;padding:10px;text-align:center;font-size:11px;color:#9CA3AF;border-radius:0 0 10px 10px;border:1px solid #E5E7EB;border-top:none">
+      แจ้งเตือนอัตโนมัติโดยระบบตรวจสอบเครื่องจักร</div>
+  </div>`;
 
   try {
     MailApp.sendEmail({ to: toEmail, subject, htmlBody: html });
