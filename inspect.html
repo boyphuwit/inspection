@@ -7,29 +7,27 @@
 <style>
 /* ── RESET & TOKENS ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
-  --c-primary:   #DC2626;
+  --c-primary: #DC2626;
   --c-primary-d: #991B1B;
   --c-primary-l: #E8F0FA;
-  --c-success:   #1E7E4C;
+  --c-success: #1E7E4C;
   --c-success-l: #E6F5ED;
-  --c-danger:    #B91C1C;
-  --c-danger-l:  #FEE2E2;
-  --c-warn:      #B45309;
-  --c-warn-l:    #FEF3C7;
-  --c-text:      #111827;
-  --c-sub:       #4B5563;
-  --c-muted:     #9CA3AF;
-  --c-border:    #D1D5DB;
-  --c-bg:        #F3F6FB;
-  --c-surface:   #FFFFFF;
-  --r-card:      12px;
-  --r-btn:       8px;
-  --shadow-sm:   0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
-  --shadow-md:   0 4px 12px rgba(0,0,0,.08);
+  --c-danger: #B91C1C;
+  --c-danger-l: #FEE2E2;
+  --c-warn: #B45309;
+  --c-warn-l: #FEF3C7;
+  --c-text: #111827;
+  --c-sub: #4B5563;
+  --c-muted: #9CA3AF;
+  --c-border: #D1D5DB;
+  --c-bg: #F3F6FB;
+  --c-surface: #FFFFFF;
+  --r-card: 12px;
+  --r-btn: 8px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
 }
-
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans Thai', sans-serif;
   background: var(--c-bg);
@@ -38,7 +36,6 @@ body {
   font-size: 15px;
   line-height: 1.5;
 }
-
 /* ── HEADER ── */
 .app-header {
   background: linear-gradient(160deg, var(--c-primary-d) 0%, var(--c-primary) 100%);
@@ -68,20 +65,17 @@ body {
 }
 .scan-pill__dot { width: 6px; height: 6px; border-radius: 50%; background: #4ADE80; animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-
 /* ── PAGE BODY ── */
 .page-body { max-width: 640px; margin: 0 auto; padding: 20px 16px 100px; display: flex; flex-direction: column; gap: 16px; }
-
 /* ── SUMMARY BAR ── */
 .summary { display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--c-surface); border-radius: var(--r-card); box-shadow: var(--shadow-sm); overflow: hidden; border: 1px solid var(--c-border); }
 .summary__item { padding: 14px 8px; text-align: center; border-right: 1px solid var(--c-border); }
 .summary__item:last-child { border-right: none; }
 .summary__num { font-size: 26px; font-weight: 700; line-height: 1; }
 .summary__label { font-size: 11px; color: var(--c-sub); margin-top: 4px; font-weight: 500; letter-spacing: .02em; }
-.summary__item--pass  .summary__num { color: var(--c-success); }
-.summary__item--fail  .summary__num { color: var(--c-danger); }
-.summary__item--pend  .summary__num { color: var(--c-muted); }
-
+.summary__item--pass .summary__num { color: var(--c-success); }
+.summary__item--fail .summary__num { color: var(--c-danger); }
+.summary__item--pend .summary__num { color: var(--c-muted); }
 /* ── CARD ── */
 .card { background: var(--c-surface); border-radius: var(--r-card); box-shadow: var(--shadow-sm); border: 1px solid var(--c-border); overflow: hidden; }
 .card__header { padding: 12px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--c-border); }
@@ -90,7 +84,6 @@ body {
 .card__tag--green { background: var(--c-success); color: #fff; }
 .card__heading { font-size: 13px; font-weight: 600; color: var(--c-sub); }
 .card__note { font-size: 11px; color: var(--c-muted); margin-left: auto; }
-
 /* ── INFO GRID ── */
 .info-grid { display: grid; grid-template-columns: 1fr 1fr; }
 .info-cell { padding: 12px 16px; border-bottom: 1px solid #F3F4F6; border-right: 1px solid #F3F4F6; }
@@ -99,7 +92,6 @@ body {
 .info-cell__label { font-size: 10px; font-weight: 600; color: var(--c-muted); letter-spacing: .05em; text-transform: uppercase; margin-bottom: 3px; }
 .info-cell__val { font-size: 14px; font-weight: 600; color: var(--c-text); }
 .info-cell__val--id { color: var(--c-primary); font-family: 'Courier New', monospace; }
-
 /* ── INSPECTOR INPUT ── */
 .field { padding: 14px 16px; }
 .field label { display: block; font-size: 12px; font-weight: 600; color: var(--c-sub); margin-bottom: 8px; letter-spacing: .02em; }
@@ -114,24 +106,20 @@ body {
 .field input:focus, .field textarea:focus { border-color: var(--c-primary); background: #fff; }
 .field input::placeholder, .field textarea::placeholder { color: var(--c-muted); }
 .field textarea { min-height: 80px; resize: none; }
-
 /* ── CHECKLIST TABLE ── */
 .cl-header { display: grid; grid-template-columns: 1fr 90px 90px 48px; padding: 8px 16px; background: #F9FAFB; border-bottom: 1px solid var(--c-border); }
 .cl-header span { font-size: 11px; font-weight: 600; color: var(--c-muted); letter-spacing: .04em; text-align: center; }
 .cl-header span:first-child { text-align: left; }
-
 .cl-row { display: grid; grid-template-columns: 1fr 90px 90px 48px; align-items: center; padding: 10px 16px; border-bottom: 1px solid #F3F4F6; transition: background .1s; }
 .cl-row:last-child { border-bottom: none; }
 .cl-row--pass { background: var(--c-success-l); }
 .cl-row--fail { background: var(--c-danger-l); }
 .cl-row--warn { background: var(--c-warn-l); }
-
 .cl-row__label { font-size: 14px; color: var(--c-text); display: flex; align-items: center; gap: 6px; }
 .cl-row__num { font-size: 12px; color: var(--c-muted); font-weight: 500; min-width: 20px; }
 .status-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
 .status-badge--pass { background: #D1FAE5; color: var(--c-success); }
 .status-badge--fail { background: #FEE2E2; color: var(--c-danger); }
-
 .cl-btn {
   display: flex; align-items: center; justify-content: center; gap: 4px;
   padding: 7px 4px; border-radius: 6px; border: 1.5px solid var(--c-border);
@@ -141,7 +129,6 @@ body {
 }
 .cl-btn--pass.active { background: var(--c-success); border-color: var(--c-success); color: #fff; }
 .cl-btn--fail.active { background: var(--c-danger); border-color: var(--c-danger); color: #fff; }
-
 .photo-btn {
   width: 36px; height: 36px; border-radius: 8px;
   border: 1.5px dashed var(--c-border);
@@ -152,7 +139,6 @@ body {
 }
 .photo-btn--has { border-style: solid; border-color: var(--c-primary); background: var(--c-primary-l); }
 .photo-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-
 /* ── BOTTOM ACTION BAR ── */
 .action-bar {
   position: fixed; bottom: 0; left: 0; right: 0;
@@ -164,7 +150,6 @@ body {
   z-index: 50;
 }
 .action-bar__inner { max-width: 640px; margin: 0 auto; display: flex; gap: 10px; width: 100%; }
-
 .btn { padding: 13px 20px; border-radius: var(--r-btn); font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .15s; border: none; -webkit-tap-highlight-color: transparent; }
 .btn--outline { background: transparent; border: 1.5px solid var(--c-primary); color: var(--c-primary); flex: 1; }
 .btn--outline:hover { background: var(--c-primary-l); }
@@ -172,21 +157,18 @@ body {
 .btn--primary:hover { background: var(--c-primary-d); }
 .btn--primary:disabled { opacity: .5; cursor: not-allowed; }
 .btn--danger { background: var(--c-danger); color: #fff; flex: 2; }
-
 /* ── OVERLAY ── */
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 14px; }
 .overlay.show { display: flex; }
 .spinner { width: 42px; height: 42px; border: 3px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .75s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .overlay__msg { color: #fff; font-size: 14px; font-weight: 500; }
-
 /* ── TOAST ── */
 .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(60px); padding: 12px 20px; border-radius: 24px; font-size: 13px; font-weight: 600; white-space: nowrap; transition: transform .25s; z-index: 300; pointer-events: none; }
 .toast.show { transform: translateX(-50%) translateY(0); }
 .toast--success { background: var(--c-success); color: #fff; }
 .toast--error { background: var(--c-danger); color: #fff; }
 .toast--info { background: var(--c-primary); color: #fff; }
-
 /* ── HISTORY PANEL ── */
 .panel { display: none; position: fixed; inset: 0; background: var(--c-bg); z-index: 100; overflow-y: auto; flex-direction: column; }
 .panel.show { display: flex; }
@@ -194,14 +176,11 @@ body {
 .panel__back { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2); color: #fff; border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
 .panel__title { font-size: 16px; font-weight: 700; }
 .panel__body { max-width: 640px; margin: 0 auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 14px; width: 100%; }
-
 .view-toggle { display: flex; background: var(--c-surface); border-radius: 10px; border: 1px solid var(--c-border); overflow: hidden; }
 .view-toggle__btn { flex: 1; padding: 10px; font-size: 12px; font-weight: 600; border: none; background: transparent; cursor: pointer; color: var(--c-muted); display: flex; align-items: center; justify-content: center; gap: 6px; transition: all .15s; }
 .view-toggle__btn.active { background: var(--c-primary); color: #fff; }
-
 .filter-row { display: flex; gap: 8px; }
 .filter-row select { flex: 1; padding: 9px 12px; border: 1.5px solid var(--c-border); border-radius: var(--r-btn); font-size: 13px; font-family: inherit; color: var(--c-text); background: #fff; outline: none; }
-
 /* History cards */
 .hist-card { background: var(--c-surface); border-radius: var(--r-card); border: 1px solid var(--c-border); box-shadow: var(--shadow-sm); padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; }
 .hist-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
@@ -215,8 +194,7 @@ body {
 .hist-badge { flex-shrink: 0; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 12px; }
 .hist-badge--pass { background: var(--c-success-l); color: var(--c-success); }
 .hist-badge--fail { background: var(--c-danger-l); color: var(--c-danger); }
-.hist-badge--inc  { background: var(--c-warn-l);   color: var(--c-warn); }
-
+.hist-badge--inc { background: var(--c-warn-l); color: var(--c-warn); }
 /* Calendar */
 .cal-wrap { background: var(--c-surface); border-radius: var(--r-card); border: 1px solid var(--c-border); padding: 16px; }
 .cal-month { font-size: 14px; font-weight: 700; color: var(--c-primary); text-align: center; margin-bottom: 12px; }
@@ -229,7 +207,6 @@ body {
 .cal-dot { width: 5px; height: 5px; border-radius: 50%; }
 .cal-dot--pass { background: var(--c-success); }
 .cal-dot--fail { background: var(--c-danger); }
-
 .empty-state { text-align: center; color: var(--c-muted); font-size: 13px; padding: 40px 20px; }
 .loading-state { text-align: center; color: var(--c-muted); font-size: 13px; padding: 30px; }
 </style>
@@ -276,9 +253,9 @@ body {
       <div class="app-header__meta" id="hdr-meta"></div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
-    <a href="index.html" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;color:#fff;text-decoration:none">← หน้าหลัก</a>
-    <div class="scan-pill"><div class="scan-pill__dot"></div> สแกนแล้ว</div>
-  </div>
+      <a href="index.html" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;color:#fff;text-decoration:none">← หน้าหลัก</a>
+      <div class="scan-pill"><div class="scan-pill__dot"></div> สแกนแล้ว</div>
+    </div>
   </div>
 </header>
 
@@ -361,8 +338,8 @@ const SCRIPT_URL = typeof GAS_URL !== 'undefined' ? GAS_URL : '';
 
 // ── STATE ─────────────────────────────────────────────
 let machine = null;
-let checks  = []; // { id, label, state: 'normal'|'abnormal'|'pending' }
-let photos  = {}; // { checkId: base64 }
+let checks = []; // { id, label, state: 'normal'|'abnormal'|'pending' }
+let photos = {}; // { checkId: base64 }
 let histView = 'list';
 
 // ── INIT ─────────────────────────────────────────────
@@ -400,12 +377,12 @@ function init() {
 
   // Info grid — ดึงจาก session (Database sheet) ก่อน ถ้าไม่มีใช้ config.js
   const infoFields = [
-    ['Machine ID',      machine.id, true],
+    ['Machine ID', machine.id, true],
     ['ชื่อเครื่องจักร', machine.name],
-    ['Plant Code',      _user.plantCode || '—'],
-    ['Plant Name',      _user.plantName || '—'],
-    ['Area',            _user.area      || '—'],
-    ['EN-ME',           _user.enMe      || '—'],
+    ['Plant Code', _user.plantCode || '—'],
+    ['Plant Name', _user.plantName || '—'],
+    ['Area', _user.area || '—'],
+    ['EN-ME', _user.enMe || '—'],
   ];
   document.getElementById('info-grid').innerHTML = infoFields.map(([label, val, mono]) => `
     <div class="info-cell">
@@ -441,8 +418,9 @@ function renderChecklist() {
     const badge = c.state === 'normal'
       ? '<span class="status-badge status-badge--pass">ปกติ</span>'
       : c.state === 'abnormal'
-      ? '<span class="status-badge status-badge--fail">ผิดปกติ</span>'
-      : '';
+        ? '<span class="status-badge status-badge--fail">ผิดปกติ</span>'
+        : '';
+
     html += `<div class="cl-row ${rowCls}" id="clrow-${c.id}">
       <div class="cl-row__label"><span>${c.label}</span>${badge}</div>
       <button class="cl-btn cl-btn--pass ${c.state === 'normal' ? 'active' : ''}" onclick="setCheck(${c.id},'normal')">✓ ปกติ</button>
@@ -450,6 +428,7 @@ function renderChecklist() {
       <label class="photo-btn ${hasPhoto ? 'photo-btn--has' : ''}">${hasPhoto ? '📸' : '📷'}<input type="file" accept="image/*" capture="environment" onchange="addPhoto(event,${c.id})"></label>
     </div>`;
   });
+
   list.innerHTML = html;
 }
 
@@ -463,8 +442,9 @@ function setCheck(id, state) {
 
 function updateSummary() {
   const norm = checks.filter(c => c.state === 'normal').length;
-  const abn  = checks.filter(c => c.state === 'abnormal').length;
+  const abn = checks.filter(c => c.state === 'abnormal').length;
   const pend = checks.filter(c => c.state === 'pending').length;
+
   document.getElementById('sum-pass').textContent = norm;
   document.getElementById('sum-fail').textContent = abn;
   document.getElementById('sum-pend').textContent = pend;
@@ -483,6 +463,7 @@ function updateSummary() {
 function addPhoto(e, idx) {
   const file = e.target.files[0];
   if (!file) return;
+
   const reader = new FileReader();
   reader.onload = ev => {
     const img = new Image();
@@ -492,7 +473,7 @@ function addPhoto(e, idx) {
       let w = img.width, h = img.height;
       if (w > MAX || h > MAX) {
         if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-        else       { w = Math.round(w * MAX / h); h = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
       }
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
@@ -517,36 +498,35 @@ async function submitForm() {
   showOverlay('กำลังส่งข้อมูล…');
 
   try {
-    const now      = new Date().toLocaleString('th-TH');
-    const normal   = checks.filter(c => c.state === 'normal');
+    const now = new Date().toLocaleString('th-TH');
+    const normal = checks.filter(c => c.state === 'normal');
     const abnormal = checks.filter(c => c.state === 'abnormal');
-    const note     = document.getElementById('note').value.trim();
-    const status   = abnormal.length > 0 ? 'ABNORMAL' : pending > 0 ? 'INCOMPLETE' : 'NORMAL';
+    const note = document.getElementById('note').value.trim();
+    const status = abnormal.length > 0 ? 'ABNORMAL' : pending > 0 ? 'INCOMPLETE' : 'NORMAL';
 
     // ดึงข้อมูล Plant จาก session login
     const _sess = JSON.parse(sessionStorage.getItem('rmx_user') || '{}');
 
     const payload = {
-      timestamp:    now,
-      machineId:    machine.id,
-      machineName:  machine.name,
-      plantCode:    _sess.plantCode || machine.fc || '',
-      plantName:    _sess.plantName || machine.name || '',
-      area:         _sess.area      || machine.region || '',
-      enMe:         _sess.enMe      || machine.me || '',
-      fc:           _sess.plantCode || machine.fc || '',
-      unit:         machine.unit    || '',
-      me:           _sess.enMe      || machine.me || '',
-      location:     machine.location || '',
+      timestamp: now,
+      machineId: machine.id,
+      machineName: machine.name,
+      plantCode: _sess.plantCode || machine.fc || '',
+      plantName: _sess.plantName || machine.name || '',
+      area: _sess.area || machine.region || '',
+      enMe: _sess.enMe || machine.me || '',
+      fc: _sess.plantCode || machine.fc || '',
+      unit: machine.unit || '',
+      me: _sess.enMe || machine.me || '',
+      location: machine.location || '',
       inspector,
       status,
-      normalCount:   normal.length,
+      normalCount: normal.length,
       abnormalCount: abnormal.length,
       abnormalItems: abnormal.map(c => c.label).join(', '),
       note,
-      photos:        Object.values(photos).filter(Boolean),
-      notifyEmail:   _sess.email || machine.notifyEmail || '',
-      saveToSheet:   true
+      notifyEmail: _sess.email || machine.notifyEmail || '',
+      saveToSheet: true
     };
 
     // ส่งข้อมูลตรงไป Apps Script ผ่าน GET (ไม่มี CORS)
@@ -557,37 +537,38 @@ async function submitForm() {
     })));
 
     const params = new URLSearchParams({
-      action:        'submit',
-      timestamp:     payload.timestamp,
-      machineId:     payload.machineId,
-      machineName:   payload.machineName,
-      plantCode:     payload.plantCode,
-      plantName:     payload.plantName,
-      area:          payload.area,
-      enMe:          payload.enMe,
-      fc:            payload.fc,
-      unit:          payload.unit,
-      region:        payload.region,
-      me:            payload.me,
-      location:      payload.location,
-      inspector:     payload.inspector,
-      status:        payload.status,
-      normalCount:   payload.normalCount,
+      action: 'submit',
+      timestamp: payload.timestamp,
+      machineId: payload.machineId,
+      machineName: payload.machineName,
+      plantCode: payload.plantCode,
+      plantName: payload.plantName,
+      area: payload.area,
+      enMe: payload.enMe,
+      fc: payload.fc,
+      unit: payload.unit,
+      region: payload.region,
+      me: payload.me,
+      location: payload.location,
+      inspector: payload.inspector,
+      status: payload.status,
+      normalCount: payload.normalCount,
       abnormalCount: payload.abnormalCount,
       abnormalItems: payload.abnormalItems,
-      note:          payload.note,
-      notifyEmail:   payload.notifyEmail,
-      checksJson:    checksJson,
+      note: payload.note,
+      notifyEmail: payload.notifyEmail,
+      checksJson: checksJson,
     });
 
-    // ส่งข้อมูลหลัก (GET, no-cors)
+    // ส่งข้อมูลหลัก (GET, no-cors) — ต้องรอให้เขียนแถวเสร็จก่อน ค่อยแนบรูป
     await fetch(SCRIPT_URL + '?' + params.toString(), {
       method: 'GET',
       mode: 'no-cors'
     });
 
-    // ส่งรูปแยก (ถ้ามี) ผ่าน no-cors POST
-    if (payload.photos && payload.photos.length > 0) {
+    // ส่งรูปแยก (ถ้ามี) ผ่าน no-cors POST — key คือลำดับรายการตรวจ (checkId)
+    // เพื่อให้ backend เขียนลิงก์ลงคอลัมน์ "รูปที่ N" ที่ตรงกับข้อนั้นๆ
+    if (Object.keys(photos).length > 0) {
       fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -597,7 +578,8 @@ async function submitForm() {
           machineId: payload.machineId,
           inspector: payload.inspector,
           timestamp: payload.timestamp,
-          photos: payload.photos
+          totalChecks: checks.length,
+          photos: photos
         })
       }).catch(() => {});
     }
@@ -623,19 +605,22 @@ function openHistory() {
   document.getElementById('history-panel').classList.add('show');
   loadHistory();
 }
+
 function closeHistory() {
   document.getElementById('history-panel').classList.remove('show');
 }
+
 function switchView(v) {
   histView = v;
   document.getElementById('btn-list').className = 'view-toggle__btn' + (v === 'list' ? ' active' : '');
-  document.getElementById('btn-cal').className  = 'view-toggle__btn' + (v === 'cal'  ? ' active' : '');
+  document.getElementById('btn-cal').className = 'view-toggle__btn' + (v === 'cal' ? ' active' : '');
   loadHistory();
 }
 
 async function loadHistory() {
   const content = document.getElementById('history-content');
   content.innerHTML = '<div class="loading-state">กำลังโหลด…</div>';
+
   try {
     const months = document.getElementById('filter-range').value;
     const gasUrl = SCRIPT_URL || (typeof GAS_URL !== 'undefined' ? GAS_URL : '');
@@ -649,6 +634,7 @@ async function loadHistory() {
       content.innerHTML = '<div class="empty-state">ยังไม่มีประวัติการตรวจสอบในช่วงเวลานี้</div>';
       return;
     }
+
     histView === 'list' ? renderList(data.rows, content) : renderCal(data.rows, content);
   } catch(err) {
     content.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ<br><small>${err.message}</small></div>`;
@@ -698,7 +684,7 @@ function renderCal(rows, container) {
   for (let d = 1; d <= days; d++) {
     const key = `${y}/${String(m+1).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
     const statuses = dateMap[key] || [];
-    const hasAbn  = statuses.includes('ABNORMAL');
+    const hasAbn = statuses.includes('ABNORMAL');
     const hasNorm = statuses.some(s => s === 'NORMAL' || s === 'INCOMPLETE');
     const cls = hasAbn ? 'cal-cell--fail' : hasNorm ? 'cal-cell--pass' : '';
     const isToday = d === now.getDate();
@@ -707,8 +693,8 @@ function renderCal(rows, container) {
       ${statuses.length ? `<div class="cal-dot cal-dot--${hasAbn ? 'fail' : 'pass'}"></div>` : ''}
     </div>`;
   }
-
   html += `</div></div>`;
+
   html += rows.map(r => {
     const cls = r.status === 'NORMAL' ? 'pass' : r.status === 'ABNORMAL' ? 'fail' : 'inc';
     const label = r.status === 'NORMAL' ? 'ปกติ' : r.status === 'ABNORMAL' ? 'ผิดปกติ' : 'ไม่ครบ';
@@ -732,6 +718,7 @@ function showOverlay(msg) {
   document.getElementById('overlay').classList.add('show');
 }
 function hideOverlay() { document.getElementById('overlay').classList.remove('show'); }
+
 function showToast(msg, type = 'info') {
   const t = document.getElementById('toast');
   t.textContent = msg;

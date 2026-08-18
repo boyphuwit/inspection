@@ -58,6 +58,20 @@ function doGet(e) {
   }
 }
 
+// ── POST: ใช้สำหรับแนบรูปภาพ (action=photos) ────────────────
+function doPost(e) {
+  try {
+    const body = JSON.parse((e.postData && e.postData.contents) || '{}');
+    if (body.action === 'photos') {
+      savePhotos(body);
+    }
+    return ok();
+  } catch(err) {
+    Logger.log('doPost error: ' + err);
+    return ok();
+  }
+}
+
 // ── Login จาก Sheet "Data base" ──────────────────────────────
 // Columns: A=User, B=Password, C=Plant Code, D=Plant Name,
 //          E=Area, F=EN-ME, G=Plant E-mail
@@ -103,55 +117,143 @@ function saveToSheet(data) {
   let sheet = ss.getSheetByName(SHEET_DATA);
   if (!sheet) sheet = ss.insertSheet(SHEET_DATA);
 
-  const checks = JSON.parse(data.checksJson || '[]');
+  // หัวตารางตามที่กำหนด — คอลัมน์รูป "รูปที่ N" จะถูกเพิ่มอัตโนมัติทีหลัง
+  // ตามจำนวนรายการตรวจสอบจริงของแต่ละเครื่อง (ดู savePhotos())
+  const HEADERS = [
+    'วันเวลา','Machine ID','ชื่อเครื่องจักร','โรงงาน (FC)','หน่วยผลิต',
+    'ภูมิภาค','ME ผู้ดูแล','ตำแหน่ง','ผู้ตรวจสอบ','ผลการตรวจ',
+    'รายการปกติ','รายการผิดปกติ','รายการที่ผิดปกติ','หมายเหตุ'
+  ];
 
   if (sheet.getLastRow() === 0) {
-    const base = [
-      'วันเวลา','Plant Code','Plant Name','Area','EN-ME',
-      'ผู้ตรวจสอบ','ผลการตรวจ'
-    ];
-    const chk = checks.map(c =>
-      c.label.replace(/^\d+[a-z]*\.\s*\[.*?\]\s*/, '').split('—')[0].trim()
-    );
-    const tail = ['รายการผิดปกติ','หมายเหตุ','รูปที่ 1','รูปที่ 2','รูปที่ 3'];
-    const all = [...base, ...chk, ...tail];
-    sheet.appendRow(all);
-    sheet.getRange(1,1,1,all.length)
+    sheet.appendRow(HEADERS);
+    sheet.getRange(1,1,1,HEADERS.length)
       .setBackground('#1B4F8A').setFontColor('#fff').setFontWeight('bold');
     sheet.setFrozenRows(1);
   }
 
-  const base = [
-    data.timestamp || new Date().toLocaleString('th-TH'),
-    data.plantCode || data.fc || '',
-    data.plantName || data.machineName || '',
-    data.area || '',
-    data.enMe || data.me || '',
-    data.inspector || '',
-    data.status || '',
+  const row = [
+    data.timestamp || new Date().toLocaleString('th-TH'),   // วันเวลา
+    data.machineId || '',                                    // Machine ID
+    data.machineName || '',                                   // ชื่อเครื่องจักร
+    data.plantCode || data.fc || '',                          // โรงงาน (FC)
+    data.plantName || '',                                     // หน่วยผลิต
+    data.area || data.region || '',                           // ภูมิภาค
+    data.enMe || data.me || '',                                // ME ผู้ดูแล
+    data.location || '',                                       // ตำแหน่ง
+    data.inspector || '',                                      // ผู้ตรวจสอบ
+    data.status || '',                                         // ผลการตรวจ
+    data.normalCount || 0,                                     // รายการปกติ
+    data.abnormalCount || 0,                                   // รายการผิดปกติ
+    data.abnormalItems || '',                                  // รายการที่ผิดปกติ
+    data.note || '',                                           // หมายเหตุ
   ];
-  const chkVals = checks.map(c =>
-    c.state === 'normal' ? 'ปกติ' : c.state === 'abnormal' ? 'ผิดปกติ' : '—'
-  );
-  const tail = [data.abnormalItems||'', data.note||'', '','',''];
 
-  sheet.appendRow([...base, ...chkVals, ...tail]);
+  sheet.appendRow(row);
 
   // ระบายสีแถว
   const lastRow = sheet.getLastRow();
-  const totalCol = base.length + chkVals.length + tail.length;
-  const rowRange = sheet.getRange(lastRow, 1, 1, totalCol);
+  const rowRange = sheet.getRange(lastRow, 1, 1, HEADERS.length);
 
   if (data.status === 'ABNORMAL') {
     rowRange.setBackground('#FEF2F2');
-    checks.forEach((c, i) => {
-      if (c.state === 'abnormal') {
-        sheet.getRange(lastRow, base.length + 1 + i)
-          .setBackground('#FCA5A5').setFontColor('#B91C1C').setFontWeight('bold');
-      }
-    });
+    sheet.getRange(lastRow, HEADERS.indexOf('รายการที่ผิดปกติ') + 1)
+      .setBackground('#FCA5A5').setFontColor('#B91C1C').setFontWeight('bold');
   } else if (data.status === 'NORMAL') {
     rowRange.setBackground('#F0FDF4');
+  }
+}
+
+// ── บันทึกรูปภาพ: อัปโหลดขึ้น Google Drive แล้วเขียนลิงก์ลงชีท ──
+// body = { machineId, inspector, timestamp, totalChecks, photos: {checkId: dataURL, ...} }
+function savePhotos(body) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_DATA);
+  if (!sheet || sheet.getLastRow() < 1) return;
+
+  let lastCol = sheet.getLastColumn();
+  let headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+
+  // ── ขยายคอลัมน์ "รูปที่ N" ให้พอกับจำนวนรายการตรวจสอบของเครื่องนี้ ──
+  const photoKeys = Object.keys(body.photos || {}).map(Number).filter(n => !isNaN(n));
+  const neededPhotoCols = Math.max(
+    parseInt(body.totalChecks, 10) || 0,
+    photoKeys.length ? Math.max(...photoKeys) + 1 : 0
+  );
+  const existingPhotoCols = headers.filter(h => /^รูปที่ \d+$/.test(h)).length;
+
+  if (neededPhotoCols > existingPhotoCols) {
+    for (let i = existingPhotoCols + 1; i <= neededPhotoCols; i++) {
+      const colIdx = headers.length + 1;
+      sheet.getRange(1, colIdx).setValue(`รูปที่ ${i}`)
+        .setBackground('#1B4F8A').setFontColor('#fff').setFontWeight('bold');
+      headers.push(`รูปที่ ${i}`);
+    }
+    lastCol = headers.length;
+  }
+
+  // ── หาแถวที่ตรงกับการส่งผลนี้ (Machine ID + วันเวลา + ผู้ตรวจสอบ ตรงกันล่าสุด) ──
+  const iTime = headers.indexOf('วันเวลา');
+  const iMachineId = headers.indexOf('Machine ID');
+  const iInspector = headers.indexOf('ผู้ตรวจสอบ');
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
+
+  const values = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  let targetRow = -1;
+  for (let r = values.length - 1; r >= 0; r--) {
+    if (String(values[r][iMachineId]) === String(body.machineId || '') &&
+        String(values[r][iInspector]) === String(body.inspector || '') &&
+        String(values[r][iTime]) === String(body.timestamp || '')) {
+      targetRow = r + 2; // แปลงเป็นเลขแถวจริงในชีท
+      break;
+    }
+  }
+  if (targetRow === -1) return; // ไม่พบแถวที่ตรง — ข้าม
+
+  // ── อัปโหลดรูปแต่ละใบขึ้น Drive แล้วเขียนลิงก์ลงคอลัมน์ตามลำดับข้อ ──
+  const folder = getOrCreatePhotoFolder();
+  Object.keys(body.photos || {}).forEach(checkIdStr => {
+    const checkId = parseInt(checkIdStr, 10);
+    const dataUrl = body.photos[checkIdStr];
+    if (!dataUrl || isNaN(checkId)) return;
+
+    const url = uploadPhotoToDrive(folder, dataUrl, body.machineId || '', body.timestamp || '', checkId);
+    if (!url) return;
+
+    const colName = `รูปที่ ${checkId + 1}`;
+    const colIdx = headers.indexOf(colName);
+    if (colIdx >= 0) {
+      sheet.getRange(targetRow, colIdx + 1).setValue(url);
+    }
+  });
+}
+
+// ── โฟลเดอร์เก็บรูปใน Google Drive (สร้างครั้งแรกอัตโนมัติ) ──
+function getOrCreatePhotoFolder() {
+  const FOLDER_NAME = 'Machine Inspection Photos';
+  const it = DriveApp.getFoldersByName(FOLDER_NAME);
+  if (it.hasNext()) return it.next();
+  return DriveApp.createFolder(FOLDER_NAME);
+}
+
+// ── แปลง base64 dataURL เป็นไฟล์ + อัปโหลด + เปิดสิทธิ์ดูลิงก์ ──
+function uploadPhotoToDrive(folder, dataUrl, machineId, timestamp, checkId) {
+  try {
+    const m = String(dataUrl).match(/^data:(image\/\w+);base64,(.+)$/);
+    if (!m) return '';
+    const mimeType = m[1];
+    const base64 = m[2];
+    const bytes = Utilities.base64Decode(base64);
+    const safeTs = String(timestamp).replace(/[^\d]/g, '') || String(Date.now());
+    const fileName = `${machineId}_${safeTs}_check${checkId + 1}.jpg`;
+    const blob = Utilities.newBlob(bytes, mimeType, fileName);
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    return file.getUrl();
+  } catch(err) {
+    Logger.log('uploadPhotoToDrive error: ' + err);
+    return '';
   }
 }
 
@@ -166,21 +268,31 @@ function getHistory(machineId, months) {
 
   const lastCol = sheet.getLastColumn();
   const headers = sheet.getRange(1,1,1,lastCol).getValues()[0];
-  const statusIdx = headers.indexOf('ผลการตรวจ');
-  const abnIdx = headers.indexOf('รายการผิดปกติ');
-  const noteIdx = headers.indexOf('หมายเหตุ');
+  const idx = name => headers.indexOf(name);
+
+  const iTime      = idx('วันเวลา');
+  const iMachineId = idx('Machine ID');
+  const iMachName  = idx('ชื่อเครื่องจักร');
+  const iInspector = idx('ผู้ตรวจสอบ');
+  const iStatus    = idx('ผลการตรวจ');
+  const iAbnItems  = idx('รายการที่ผิดปกติ');
+  const iNote      = idx('หมายเหตุ');
 
   return sheet.getRange(2,1,sheet.getLastRow()-1,lastCol).getValues()
     .filter(r => {
-      const d = r[0] instanceof Date ? r[0] : new Date(r[0]);
-      return !isNaN(d) && d >= cutoff;
+      const d = r[iTime] instanceof Date ? r[iTime] : new Date(r[iTime]);
+      const inRange = !isNaN(d) && d >= cutoff;
+      const matchMachine = !machineId || String(r[iMachineId]).trim() === String(machineId).trim();
+      return inRange && matchMachine;
     })
     .map(r => ({
-      time: r[0] instanceof Date ? r[0].toLocaleString('th-TH') : String(r[0]),
-      plantCode: r[1], plantName: r[2], inspector: r[5],
-      status: statusIdx >= 0 ? r[statusIdx] : '',
-      abnormalItems: abnIdx >= 0 ? r[abnIdx] : '',
-      note: noteIdx >= 0 ? r[noteIdx] : '',
+      time: r[iTime] instanceof Date ? r[iTime].toLocaleString('th-TH') : String(r[iTime]),
+      machineId: iMachineId >= 0 ? r[iMachineId] : '',
+      machineName: iMachName >= 0 ? r[iMachName] : '',
+      inspector: iInspector >= 0 ? r[iInspector] : '',
+      status: iStatus >= 0 ? r[iStatus] : '',
+      abnormalItems: iAbnItems >= 0 ? r[iAbnItems] : '',
+      note: iNote >= 0 ? r[iNote] : '',
     }))
     .reverse();
 }
